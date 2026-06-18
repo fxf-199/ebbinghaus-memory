@@ -466,16 +466,46 @@ function parseNotes(r){return r.split(/\n*---\n*/).map(s=>s.trim()).filter(s=>s.
 async function doImport(){
   const r=document.getElementById('import-ta').value.trim();if(!r){toast('请先粘贴');return;}
   const items=parseNotes(r);if(!items.length){toast('未识别到笔记');return;}
-  let count=0;
+  const exist=await dbGetAll();let added=0,merged=0,skip=0;
   for(const item of items){
-    await dbPut({...(item.front?{front:item.front,back:item.back}:{}),content:item.content||'',category:selectedCat,stage:0,nextReview:now(),createdAt:now(),reviewCount:0,lastRating:null,reviewLog:[]});
-    count++;
+    // 匹配合并：按 front 或 content 前30字
+    const match=item.front?
+      exist.find(n=>n.front===item.front&&n.category===selectedCat):
+      exist.find(n=>(n.content||'').slice(0,30)===(item.content||'').slice(0,30)&&!n.front&&n.category===selectedCat);
+    if(match){
+      if(match.front){
+        const mergedB=mergeBack(match.back,item.back||'');
+        if(mergedB===match.back){skip++;continue;}
+        match.back=mergedB;match.content=match.front+' | '+mergedB;
+      }else{
+        if(match.content===item.content){skip++;continue;}
+        match.content=mergeBack(match.content,item.content||'');
+      }
+      await dbPut(match);merged++;
+    }else{
+      await dbPut({...(item.front?{front:item.front,back:item.back}:{}),content:item.content||'',category:selectedCat,stage:0,nextReview:now(),createdAt:now(),reviewCount:0,lastRating:null,reviewLog:[]});
+      added++;
+    }
   }
   document.getElementById('import-ta').value='';document.getElementById('import-preview').innerHTML='';
-  toast(`✅ 已导入 ${count} 条到「${selectedCat}」`);renderNoteList();renderReviewDashboard();updateBadge();
+  const msgs=[];if(added)msgs.push(`新增 ${added} 条`);if(merged)msgs.push(`合并 ${merged} 条`);if(skip)msgs.push(`跳过 ${skip} 条`);
+  toast(`✅ ${msgs.join('，')}`);
+  renderNoteList();renderReviewDashboard();updateBadge();
 }
 
-// ── 笔记列表（含编辑删除） ──
+// ── 智能合并 back ──
+function mergeBack(oldB,newB){
+  if(!oldB||!newB)return newB||oldB||'';
+  if(newB.includes(oldB))return newB;       // 新的是超集
+  if(oldB.includes(newB))return oldB;       // 无新增
+  const ov=longestCommon(oldB,newB);
+  if(ov.length<2)return oldB+'；'+newB;     // 无重叠
+  const rest=newB.replace(ov,'').replace(/^[,;，；\s]+|[,;，；\s]+$/g,'').trim();
+  if(!rest)return oldB;
+  return oldB+'；'+rest;
+}
+function longestCommon(a,b){let best='';for(let i=0;i<a.length;i++)for(let j=i+1;j<=a.length;j++){const s=a.slice(i,j);if(b.includes(s)&&s.length>best.length)best=s;}return best;}
+function noteKey(n){return(n.category||'')+'::'+(n.front||'')+'::'+(n.content||'').slice(0,30);}
 let noteFilterCat=null;
 async function renderNoteList(){
   const all=await dbGetAll(),cats=getCats(),cc={};cats.forEach(c=>{cc[c]=all.filter(n=>n.category===c).length;});
@@ -527,17 +557,33 @@ document.getElementById('import-file').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   const text=await f.text();let data;try{data=JSON.parse(text);}catch(err){toast('JSON 格式错误');return;}
   if(!data.notes||!Array.isArray(data.notes)){toast('无效的备份文件');return;}
-  const exist=await dbGetAll(),existKeys=new Set(exist.map(n=>(n.category||'')+'::'+(n.content||'')));
-  let added=0,skipped=0;
+  const exist=await dbGetAll();
+  let added=0,merged=0,skipped=0;
   for(const n of data.notes){
-    const key=(n.category||'')+'::'+(n.content||'');
-    if(existKeys.has(key)){skipped++;continue;}
-    delete n.id; if(!n.reviewLog)n.reviewLog=[];
-    await dbPut(n);existKeys.add(key);added++;
+    // 匹配：按 front+category 或 content+category
+    const match=n.front?
+      exist.find(x=>x.front===n.front&&x.category===(n.category||DEFAULT_CAT)):
+      exist.find(x=>(x.content||'').slice(0,30)===(n.content||'').slice(0,30)&&!x.front&&x.category===(n.category||DEFAULT_CAT));
+    if(match){
+      if(n.front){
+        const mergedB=mergeBack(match.back,n.back||'');
+        if(mergedB===match.back){skipped++;continue;}
+        match.back=mergedB;match.content=match.front+' | '+mergedB;
+      }else{
+        if((match.content||'')===(n.content||'')){skipped++;continue;}
+        match.content=mergeBack(match.content,n.content||'');
+      }
+      // 不覆盖学习进度
+      await dbPut(match);merged++;
+    }else{
+      delete n.id;if(!n.reviewLog)n.reviewLog=[];
+      await dbPut(n);added++;
+    }
   }
   // 合并分类
   if(data.categories){const cs=getCats();data.categories.forEach(c=>{if(!cs.includes(c))cs.push(c);});saveCats(cs);}
-  toast(`✅ 导入 ${added} 条，跳过 ${skipped} 条重复`);
+  const msgs=[];if(added)msgs.push(`新增 ${added} 条`);if(merged)msgs.push(`合并 ${merged} 条`);if(skipped)msgs.push(`跳过 ${skipped} 条`);
+  toast(`✅ ${msgs.join('，')}`);
   document.getElementById('import-file').value='';
   renderCatSelector();renderNoteList();renderReviewDashboard();updateBadge();
 });
