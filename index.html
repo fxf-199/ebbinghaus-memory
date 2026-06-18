@@ -372,8 +372,10 @@ function selectCat(c){selectedCat=c;renderCatSelector();}
 document.getElementById('manage-cat-btn').addEventListener('click',showCatMgr);
 function showCatMgr(){
   const c=getCats();const o=document.createElement('div');o.className='modal-overlay';
-  o.innerHTML=`<div class="modal-box"><h3>📂 管理分类</h3><div style="margin-bottom:12px">${c.map((x,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px">${eHtml(x)}</span>${x===DEFAULT_CAT?'<span style="font-size:11px;color:var(--muted)">默认</span>':`<button class="btn btn-xs btn-danger" onclick="delCat('${eAttr(x)}')" style="width:auto">删除</button>`}</div>`).join('')}</div><div style="display:flex;gap:8px"><input class="modal-input" id="new-cat-input" placeholder="新分类名" maxlength="10"><button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button></div><div class="modal-actions"><button class="btn btn-sm btn-outline" id="close-cm">关闭</button></div></div>`;
+  o.innerHTML=`<div class="modal-box"><h3>📂 管理分类</h3><div style="margin-bottom:12px" id="cat-list-modal">${c.map((x,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px">${eHtml(x)}</span>${x===DEFAULT_CAT?'<span style="font-size:11px;color:var(--muted)">默认</span>':`<button class="btn btn-xs btn-danger cat-del-btn" data-cat="${eAttr(x)}" style="width:auto">删除</button>`}</div>`).join('')}</div><div style="display:flex;gap:8px"><input class="modal-input" id="new-cat-input" placeholder="新分类名" maxlength="10"><button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button></div><div class="modal-actions"><button class="btn btn-sm btn-outline" id="close-cm">关闭</button></div></div>`;
   document.body.appendChild(o);
+  // 事件委托：删除分类按钮
+  o.querySelectorAll('.cat-del-btn').forEach(btn=>{btn.onclick=()=>delCat(btn.dataset.cat);});
   o.querySelector('#close-cm').onclick=()=>{o.remove();renderCatSelector();renderReviewDashboard();renderNoteList();};
   o.querySelector('#add-cat-btn').onclick=()=>{
     const v=o.querySelector('#new-cat-input').value.trim();
