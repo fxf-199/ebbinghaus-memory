@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#4A6CF7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>记忆助手</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans SC",sans-serif;
+  background:#F1F5F9;color:#1E293B;min-height:100dvh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased
+}
+
+/* ── Tab Bar ── */
+.tab-bar{
+  position:fixed;bottom:0;left:0;right:0;height:64px;background:#fff;
+  border-top:1px solid #E2E8F0;display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom,0)
+}
+.tab-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;color:#94A3B8;font-size:11px;cursor:pointer;border:none;background:none;
+  transition:color .15s;position:relative
+}
+.tab-item.active{color:#4A6CF7;font-weight:600}
+.tab-icon{font-size:22px;line-height:1}
+.tab-item .badge{
+  position:absolute;top:4px;left:calc(50% + 12px);background:#EF4444;color:#fff;
+  font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;
+  align-items:center;justify-content:center;padding:0 5px;font-weight:700
+}
+.tab-item .badge:empty{display:none}
+
+/* ── Main Content ── */
+.main{padding:16px 16px 88px;max-width:500px;margin:0 auto}
+.page{display:none;animation:fadeIn .2s}
+.page.active{display:block}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Header ── */
+.header{text-align:center;padding:20px 0 8px}
+.header h1{font-size:22px;font-weight:800;color:#1E293B;letter-spacing:-0.3px}
+.header .sub{font-size:13px;color:#64748B;margin-top:2px}
+
+/* ── Cards ── */
+.card{
+  background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)
+}
+.card-title{font-size:15px;font-weight:700;color:#334155;margin-bottom:8px}
+
+/* ── Stat Numbers ── */
+.stat-row{display:flex;gap:10px;margin-bottom:14px}
+.stat-box{
+  flex:1;background:#fff;border-radius:14px;padding:16px 12px;text-align:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.05)
+}
+.stat-val{font-size:32px;font-weight:800;color:#1E293B;line-height:1.1}
+.stat-label{font-size:12px;color:#94A3B8;margin-top:4px}
+.stat-box.accent .stat-val{color:#4A6CF7}
+.stat-box.success .stat-val{color:#10B981}
+.stat-box.warn  .stat-val{color:#F59E0B}
+
+/* ── Review ── */
+.review-empty{text-align:center;padding:40px 0}
+.review-empty .emoji{font-size:56px;margin-bottom:12px}
+.review-empty p{color:#94A3B8;font-size:15px;margin-bottom:6px}
+
+.review-card-wrapper{perspective:600px}
+.review-card{
+  background:#fff;border-radius:20px;padding:32px 24px;min-height:220px;
+  box-shadow:0 4px 24px rgba(0,0,0,.08);text-align:center;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  position:relative;overflow:hidden;transition:transform .3s,opacity .3s
+}
+.review-card.swipe-out{transform:translateX(100%);opacity:0}
+.review-card.swipe-left{transform:translateX(-100%);opacity:0}
+
+.review-stage{font-size:12px;color:#94A3B8;padding:3px 10px;background:#F1F5F9;border-radius:10px}
+.review-hint{font-size:15px;color:#64748B}
+.review-content{
+  font-size:20px;font-weight:700;color:#1E293B;line-height:1.6;
+  word-break:break-word;max-width:100%;padding:0 4px
+}
+.review-reveal-btn{display:none}
+
+.rating-row{display:flex;gap:10px;width:100%;margin-top:8px}
+.rating-btn{
+  flex:1;padding:14px 8px;border-radius:14px;border:2px solid #E2E8F0;
+  background:#fff;font-size:14px;font-weight:600;cursor:pointer;
+  transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px;
+  -webkit-tap-highlight-color:transparent
+}
+.rating-btn:active{transform:scale(.96)}
+.rating-btn .r-emoji{font-size:20px}
+.rating-btn.forgot:active,.rating-btn.forgot:hover{border-color:#EF4444;background:#FEF2F2}
+.rating-btn.vague:active,.rating-btn.vague:hover{border-color:#F59E0B;background:#FFFBEB}
+.rating-btn.gotit:active,.rating-btn.gotit:hover{border-color:#10B981;background:#ECFDF5}
+
+.review-summary{text-align:center;padding:30px 0}
+.review-summary .emoji{font-size:56px;margin-bottom:12px}
+.review-summary .title{font-size:20px;font-weight:800;margin-bottom:6px}
+.review-summary .detail{font-size:14px;color:#64748B;margin-bottom:4px}
+
+/* ── Import ── */
+.import-textarea{
+  width:100%;min-height:180px;border:2px solid #E2E8F0;border-radius:14px;
+  padding:16px;font-size:15px;font-family:inherit;resize:vertical;
+  outline:none;transition:border-color .15s;line-height:1.6;color:#1E293B
+}
+.import-textarea:focus{border-color:#4A6CF7}
+.import-hint{font-size:12px;color:#94A3B8;margin-top:6px;line-height:1.5}
+.import-preview{margin-top:12px;max-height:160px;overflow-y:auto}
+
+.preview-item{
+  padding:10px 14px;background:#fff;border-radius:10px;margin-bottom:6px;
+  font-size:14px;color:#334155;border-left:3px solid #4A6CF7;
+  box-shadow:0 1px 2px rgba(0,0,0,.04)
+}
+.preview-item .idx{font-size:11px;color:#94A3B8;margin-right:6px}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;
+  border:none;cursor:pointer;transition:all .15s;width:100%;
+  -webkit-tap-highlight-color:transparent
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#4A6CF7;color:#fff}
+.btn-primary:active{background:#3B5DE7}
+.btn-outline{background:#fff;color:#4A6CF7;border:2px solid #4A6CF7}
+.btn-danger{background:#FEF2F2;color:#EF4444;border:2px solid #FEE2E2}
+.btn-danger:active{background:#FEE2E2}
+.btn-sm{padding:8px 16px;font-size:13px;width:auto}
+.btn:disabled{opacity:.5;pointer-events:none}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;
+  color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;
+  z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.15)
+}
+.toast.show{opacity:1}
+
+/* ── List ── */
+.note-list-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;background:#fff;border-radius:12px;margin-bottom:8px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04)
+}
+.note-list-item .n-content{flex:1;font-size:14px;color:#334155;margin-right:12px}
+.note-list-item .n-meta{font-size:11px;color:#94A3B8;white-space:nowrap}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .2s
+}
+.modal-box{
+  background:#fff;border-radius:20px;padding:24px;width:calc(100% - 48px);
+  max-width:400px;max-height:80vh;overflow-y:auto
+}
+.modal-box h3{font-size:17px;font-weight:700;margin-bottom:12px}
+.modal-box p{font-size:14px;color:#64748B;margin-bottom:16px;line-height:1.6}
+.modal-actions{display:flex;gap:10px}
+
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════ 复习页 ═══════════ -->
+<div class="main"><div class="page active" id="page-review">
+  <div class="header">
+    <h1>📖 记忆助手</h1>
+    <div class="sub">艾宾浩斯间隔复习</div>
+  </div>
+  <div id="review-dashboard"></div>
+  <div id="review-active" style="display:none"></div>
+  <div id="review-done" style="display:none"></div>
+</div></div>
+
+<!-- ═══════════ 导入页 ═══════════ -->
+<div class="main"><div class="page" id="page-import">
+  <div class="header">
+    <h1>📥 导入笔记</h1>
+    <div class="sub">用 <code>---</code> 分隔每条笔记</div>
+  </div>
+  <textarea class="import-textarea" id="import-ta" placeholder="在此粘贴笔记内容，每条之间用 --- 分隔&#10;&#10;例如：&#10;艾宾浩斯遗忘曲线表明记忆在20分钟后遗忘42%&#10;---&#10;间隔重复是长期记忆最有效的方法&#10;---&#10;SiC具有高导热率的特性"></textarea>
+  <div class="import-hint">💡 用 <code>---</code>（三个短横线，单独一行）分隔每条笔记，最多 50 字/条</div>
+  <div class="import-preview" id="import-preview"></div>
+  <button class="btn btn-primary" id="import-btn" style="margin-top:14px">📥 导入笔记</button>
+  <div style="margin-top:20px">
+    <div class="card-title">📋 已导入的笔记</div>
+    <div id="note-list"></div>
+    <button class="btn btn-danger btn-sm" id="clear-btn" style="margin-top:10px">🗑 清空全部笔记</button>
+  </div>
+</div></div>
+
+<!-- ═══════════ 统计页 ═══════════ -->
+<div class="main"><div class="page" id="page-stats">
+  <div class="header">
+    <h1>📊 学习统计</h1>
+    <div class="sub">你的记忆轨迹</div>
+  </div>
+  <div id="stats-content"></div>
+</div></div>
+
+<!-- ═══════════ 底部导航 ═══════════ -->
+<nav class="tab-bar">
+  <button class="tab-item active" data-page="review">
+    <span class="tab-icon">📖</span>复习<span class="badge" id="due-badge"></span>
+  </button>
+  <button class="tab-item" data-page="import">
+    <span class="tab-icon">📥</span>导入
+  </button>
+  <button class="tab-item" data-page="stats">
+    <span class="tab-icon">📊</span>统计
+  </button>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════
+   艾宾浩斯记忆助手 — 核心逻辑
+   ═══════════════════════════════════════════ */
+
+// ── IndexedDB ──
+const DB_NAME = 'ebbinghaus-db', DB_VER = 1;
+let db;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open(DB_NAME, DB_VER);
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('notes')){
+        const s = d.createObjectStore('notes',{keyPath:'id',autoIncrement:true});
+        s.createIndex('nextReview','nextReview');
+        s.createIndex('stage','stage');
+      }
+    };
+    r.onsuccess = e => { db = e.target.result; res(db); };
+    r.onerror = () => rej(r.error);
+  });
+}
+
+function dbPut(note){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').put(note); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
+function dbGetAll(){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readonly').objectStore('notes').getAll(); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
+function dbGet(id){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readonly').objectStore('notes').get(id); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
+function dbDelete(id){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').delete(id); t.onsuccess=()=>res(); t.onerror=()=>rej(t.error); }); }
+function dbClear(){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').clear(); t.onsuccess=()=>res(); t.onerror=()=>rej(t.error); }); }
+
+// ── Ebbinghaus 算法 ──
+// 间隔天数：新→1天→2天→4天→7天→15天→30天→60天（掌握）
+const INTERVALS = [1,2,4,7,15,30,60];
+
+function calcNextReview(stage, rating){
+  // rating: 'forgot' | 'vague' | 'remembered'
+  if(rating === 'forgot'){
+    return { stage: 0, nextReview: addDays(now(), INTERVALS[0]) };
+  }
+  if(rating === 'vague'){
+    const s = Math.max(stage - 1, 0);
+    return { stage: s, nextReview: addDays(now(), INTERVALS[s]) };
+  }
+  // remembered
+  const s = Math.min(stage + 1, INTERVALS.length);
+  if(s === INTERVALS.length){
+    return { stage: s, nextReview: null }; // 已掌握，不再复习
+  }
+  return { stage: s, nextReview: addDays(now(), INTERVALS[s]) };
+}
+
+function now(){ return Date.now(); }
+function addDays(ts, days){ return ts + days * 86400000; }
+function stageLabel(s){
+  if(s >= INTERVALS.length) return '✅ 已掌握';
+  if(s === 0) return '🆕 新学';
+  return `🔄 第${s}次复习（${INTERVALS[s]}天）`;
+}
+
+// ── Toast ──
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+// ── Tab 切换 ──
+let currentTab = 'review';
+document.querySelectorAll('.tab-item').forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    currentTab = btn.dataset.page;
+    document.querySelectorAll('.tab-item').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+currentTab).classList.add('active');
+    if(currentTab==='review') renderReviewDashboard();
+    if(currentTab==='import') renderNoteList();
+    if(currentTab==='stats') renderStats();
+  });
+});
+
+// ── 复习状态 ──
+let reviewQueue = [];
+let reviewIndex = -1;
+
+async function renderReviewDashboard(){
+  const due = await getDueNotes();
+  const all = await dbGetAll();
+  const mastered = all.filter(n=>n.stage >= INTERVALS.length).length;
+  const badge = document.getElementById('due-badge');
+  badge.textContent = due.length > 0 ? due.length : '';
+
+  const dash = document.getElementById('review-dashboard');
+  const active = document.getElementById('review-active');
+  const done = document.getElementById('review-done');
+  active.style.display='none'; done.style.display='none'; dash.style.display='block';
+
+  if(all.length === 0){
+    dash.innerHTML = `<div class="review-empty"><div class="emoji">📭</div><p>还没有笔记</p><p style="font-size:13px">先去「导入」添加笔记吧</p></div>`;
+    return;
+  }
+  if(due.length === 0){
+    dash.innerHTML = `
+      <div class="review-empty"><div class="emoji">🎉</div><p>太棒了，全部复习完毕！</p><p style="font-size:13px">${mastered>0?mastered+' 条已掌握':'下一轮复习时间还没到'}</p></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
+        <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
+        <div class="stat-box warn"><div class="stat-val">${all.length - mastered}</div><div class="stat-label">学习中</div></div>
+      </div>`;
+    return;
+  }
+  dash.innerHTML = `
+    <div class="card" style="text-align:center">
+      <div style="font-size:48px;margin-bottom:8px">🧠</div>
+      <div style="font-size:36px;font-weight:800;color:#4A6CF7">${due.length}</div>
+      <div style="font-size:14px;color:#64748B;margin-bottom:16px">条笔记等待复习</div>
+      <button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
+      <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
+      <div class="stat-box warn"><div class="stat-val">${all.length - mastered}</div><div class="stat-label">学习中</div></div>
+    </div>`;
+}
+
+async function getDueNotes(){
+  const all = await dbGetAll();
+  const n = now();
+  return all.filter(x => x.nextReview !== null && x.nextReview <= n).sort((a,b)=>a.nextReview-b.nextReview);
+}
+
+// ── 开始复习 ──
+async function startReview(){
+  reviewQueue = await getDueNotes();
+  reviewIndex = 0;
+  if(reviewQueue.length === 0){ renderReviewDashboard(); return; }
+  document.getElementById('review-dashboard').style.display='none';
+  document.getElementById('review-active').style.display='block';
+  document.getElementById('review-done').style.display='none';
+  showCard();
+}
+
+function showCard(){
+  if(reviewIndex >= reviewQueue.length){
+    finishReview();
+    return;
+  }
+  const note = reviewQueue[reviewIndex];
+  const container = document.getElementById('review-active');
+  container.innerHTML = `
+    <div class="review-card-wrapper">
+      <div class="review-card" id="review-card">
+        <div class="review-stage">${stageLabel(note.stage)} · 第${note.reviewCount+1}次复习</div>
+        <div class="review-hint">🤔 请在脑中回忆以下内容</div>
+        <button class="btn btn-outline" id="reveal-btn" style="width:auto;margin:8px 0">👁 显示内容</button>
+        <div class="review-content" id="reveal-content" style="display:none">${escapeHtml(note.content)}</div>
+        <div class="rating-row" id="rating-row" style="display:none">
+          <button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button>
+          <button class="rating-btn vague"  onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button>
+          <button class="rating-btn gotit"  onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;font-size:13px;color:#94A3B8">${reviewIndex+1} / ${reviewQueue.length}</div>`;
+
+  document.getElementById('reveal-btn').addEventListener('click',()=>{
+    document.getElementById('reveal-btn').style.display='none';
+    document.querySelector('.review-hint').style.display='none';
+    document.getElementById('reveal-content').style.display='block';
+    document.getElementById('rating-row').style.display='flex';
+  });
+}
+
+// ── 评分 ──
+async function rateCard(rating){
+  const note = reviewQueue[reviewIndex];
+  const result = calcNextReview(note.stage, rating);
+  note.stage = result.stage;
+  note.nextReview = result.nextReview;
+  note.reviewCount = (note.reviewCount||0) + 1;
+  note.lastRating = rating;
+  await dbPut(note);
+
+  // 动画
+  const card = document.getElementById('review-card');
+  const dir = rating === 'forgot' ? 'swipe-left' : rating === 'vague' ? 'swipe-out' : 'swipe-out';
+  card.classList.add(dir);
+
+  const clr = rating==='forgot'?'#EF4444':rating==='vague'?'#F59E0B':'#10B981';
+  const txt = rating==='forgot'?'标记：忘了':rating==='vague'?'标记：模糊':'标记：记住了';
+  toast(txt);
+
+  await sleep(280);
+  reviewIndex++;
+  showCard();
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function finishReview(){
+  document.getElementById('review-active').style.display='none';
+  const dash = document.getElementById('review-dashboard');
+  dash.style.display='block';
+  dash.innerHTML = `
+    <div class="review-summary">
+      <div class="emoji">✅</div>
+      <div class="title">本轮复习完成</div>
+      <div class="detail">共复习 ${reviewQueue.length} 条笔记</div>
+      ${renderSummaryStats()}
+    </div>`;
+  reviewQueue=[]; reviewIndex=-1;
+  setTimeout(renderReviewDashboard,100);
+}
+
+function renderSummaryStats(){
+  return ''; // 简单版不拆了
+}
+
+// ── HTML 转义 ──
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── 导入 ──
+document.getElementById('import-btn').addEventListener('click', doImport);
+document.getElementById('import-ta').addEventListener('input', previewImport);
+
+function previewImport(){
+  const raw = document.getElementById('import-ta').value.trim();
+  const items = parseNotes(raw);
+  const preview = document.getElementById('import-preview');
+  if(items.length === 0){ preview.innerHTML=''; return; }
+  preview.innerHTML = items.slice(0,20).map((c,i)=>`<div class="preview-item"><span class="idx">#${i+1}</span>${escapeHtml(c.slice(0,55))}${c.length>55?'…':''}</div>`).join('')
+    + (items.length>20?`<div style="font-size:12px;color:#94A3B8;text-align:center;padding:6px">... 还有 ${items.length-20} 条</div>`:'');
+}
+
+function parseNotes(raw){
+  return raw.split(/\n*---\n*/).map(s=>s.trim()).filter(s=>s.length>0);
+}
+
+async function doImport(){
+  const raw = document.getElementById('import-ta').value.trim();
+  if(!raw){ toast('请先粘贴笔记内容'); return; }
+  const items = parseNotes(raw);
+  if(items.length === 0){ toast('未识别到有效笔记'); return; }
+
+  const over = items.filter(c=>c.length>50);
+  if(over.length > 0){
+    toast(`有 ${over.length} 条超过50字，请精简后重试`);
+    return;
+  }
+
+  let count = 0;
+  for(const content of items){
+    await dbPut({
+      content,
+      stage: 0,
+      nextReview: now(), // 立即可复习
+      createdAt: now(),
+      reviewCount: 0,
+      lastRating: null
+    });
+    count++;
+  }
+  document.getElementById('import-ta').value = '';
+  document.getElementById('import-preview').innerHTML = '';
+  toast(`✅ 成功导入 ${count} 条笔记`);
+  renderNoteList();
+  renderReviewDashboard();
+  updateBadge();
+}
+
+// ── 笔记列表 ──
+async function renderNoteList(){
+  const all = await dbGetAll();
+  const list = document.getElementById('note-list');
+  if(all.length === 0){ list.innerHTML = '<p style="color:#94A3B8;font-size:14px;text-align:center;padding:20px">暂无笔记</p>'; return; }
+  list.innerHTML = all.sort((a,b)=>b.createdAt-a.createdAt).slice(0,50).map(n=>`
+    <div class="note-list-item">
+      <div class="n-content">${escapeHtml(n.content.slice(0,40))}${n.content.length>40?'…':''}</div>
+      <div class="n-meta">${stageLabel(n.stage)}</div>
+    </div>`).join('');
+}
+
+// ── 清空 ──
+document.getElementById('clear-btn').addEventListener('click', async ()=>{
+  const all = await dbGetAll();
+  if(all.length === 0){ toast('没有可清空的笔记'); return; }
+  // 简单确认
+  if(confirm(`确定要删除全部 ${all.length} 条笔记吗？此操作不可撤销。`)){
+    await dbClear();
+    toast('已清空全部笔记');
+    renderNoteList();
+    renderReviewDashboard();
+    updateBadge();
+  }
+});
+
+// ── 统计 ──
+async function renderStats(){
+  const all = await dbGetAll();
+  const mastered = all.filter(n=>n.stage >= INTERVALS.length).length;
+  const due = (await getDueNotes()).length;
+  const totalReviews = all.reduce((s,n)=>s+(n.reviewCount||0),0);
+
+  // 各阶段分布
+  const stageCount = {};
+  for(let i=0;i<=INTERVALS.length;i++) stageCount[i]=0;
+  all.forEach(n=>{ stageCount[Math.min(n.stage, INTERVALS.length)]++; });
+
+  const stageNames = ['新学(1天)','第1次(2天)','第2次(4天)','第3次(7天)','第4次(15天)','第5次(30天)','第6次(60天)','已掌握'];
+  const stagesHtml = stageNames.map((name,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;color:#64748B">${name}</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:14px;font-weight:600;color:#334155">${stageCount[i]||0} 条</span>
+        <span style="display:inline-block;width:${Math.max((stageCount[i]||0)/Math.max(all.length,1)*120,2)}px;height:6px;background:${i>=INTERVALS.length?'#10B981':'#4A6CF7'};border-radius:3px;opacity:${0.3+(i/INTERVALS.length)*0.7}"></span>
+      </span>
+    </div>`).join('');
+
+  document.getElementById('stats-content').innerHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
+      <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
+      <div class="stat-box warn"><div class="stat-val">${due}</div><div class="stat-label">待复习</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 学习进度</div>
+      ${stagesHtml}
+    </div>
+    <div class="card">
+      <div class="card-title">📝 复习记录</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;color:#64748B">累计复习次数</span>
+        <span style="font-size:20px;font-weight:800;color:#4A6CF7">${totalReviews}</span>
+      </div>
+    </div>`;
+}
+
+async function updateBadge(){
+  const due = await getDueNotes();
+  document.getElementById('due-badge').textContent = due.length > 0 ? due.length : '';
+}
+
+// ── Bootstrap ──
+(async function init(){
+  await openDB();
+  await renderReviewDashboard();
+  await updateBadge();
+
+  // Service Worker
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+})();
+
+</script>
+</body>
+</html>
