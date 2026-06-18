@@ -8,28 +8,30 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>记忆助手</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#F1F5F9;--card:#fff;--text:#1E293B;--sub:#64748B;--muted:#94A3B8;--pri:#4A6CF7;--pri-bg:#EEF2FF;--border:#E2E8F0;--danger:#EF4444;--danger-bg:#FEF2F2;--warn:#F59E0B;--warn-bg:#FFFBEB;--ok:#10B981;--ok-bg:#ECFDF5;--shadow:0 1px 3px rgba(0,0,0,.06)}
 html{font-size:16px;-webkit-tap-highlight-color:transparent}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans SC",sans-serif;
-  background:#F1F5F9;color:#1E293B;min-height:100dvh;overflow-x:hidden;
+  background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;
   -webkit-font-smoothing:antialiased
 }
 .tab-bar{
-  position:fixed;bottom:0;left:0;right:0;height:64px;background:#fff;
-  border-top:1px solid #E2E8F0;display:flex;z-index:100;
+  position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--card);
+  border-top:1px solid var(--border);display:flex;z-index:100;
   padding-bottom:env(safe-area-inset-bottom,0)
 }
 .tab-item{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;color:#94A3B8;font-size:11px;cursor:pointer;border:none;background:none;
+  gap:2px;color:var(--muted);font-size:11px;cursor:pointer;border:none;background:none;
   transition:color .15s;position:relative
 }
-.tab-item.active{color:#4A6CF7;font-weight:600}
+.tab-item.active{color:var(--pri);font-weight:600}
 .tab-icon{font-size:22px;line-height:1}
 .tab-item .badge{
-  position:absolute;top:4px;left:calc(50% + 12px);background:#EF4444;color:#fff;
+  position:absolute;top:4px;left:calc(50% + 12px);background:var(--danger);color:#fff;
   font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;
   align-items:center;justify-content:center;padding:0 5px;font-weight:700
 }
@@ -41,91 +43,104 @@ body{
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 .header{text-align:center;padding:20px 0 8px}
-.header h1{font-size:22px;font-weight:800;color:#1E293B;letter-spacing:-0.3px}
-.header .sub{font-size:13px;color:#64748B;margin-top:2px}
+.header h1{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.3px}
+.header .sub{font-size:13px;color:var(--sub);margin-top:2px}
 
 .card{
-  background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;
-  box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)
+  background:var(--card);border-radius:16px;padding:20px;margin-bottom:14px;
+  box-shadow:var(--shadow)
 }
 .card-title{font-size:15px;font-weight:700;color:#334155;margin-bottom:8px}
 
 .stat-row{display:flex;gap:10px;margin-bottom:14px}
 .stat-box{
-  flex:1;background:#fff;border-radius:14px;padding:16px 12px;text-align:center;
-  box-shadow:0 1px 3px rgba(0,0,0,.05)
+  flex:1;background:var(--card);border-radius:14px;padding:16px 12px;text-align:center;box-shadow:var(--shadow)
 }
-.stat-val{font-size:32px;font-weight:800;color:#1E293B;line-height:1.1}
-.stat-label{font-size:12px;color:#94A3B8;margin-top:4px}
-.stat-box.accent .stat-val{color:#4A6CF7}
-.stat-box.success .stat-val{color:#10B981}
-.stat-box.warn  .stat-val{color:#F59E0B}
+.stat-val{font-size:32px;font-weight:800;color:var(--text);line-height:1.1}
+.stat-box.accent .stat-val{color:var(--pri)}
+.stat-box.success .stat-val{color:var(--ok)}
+.stat-box.warn  .stat-val{color:var(--warn)}
+
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-sub{font-size:11px;color:var(--sub);margin-top:2px}
 
 .review-empty{text-align:center;padding:40px 0}
 .review-empty .emoji{font-size:56px;margin-bottom:12px}
-.review-empty p{color:#94A3B8;font-size:15px;margin-bottom:6px}
+.review-empty p{color:var(--muted);font-size:15px;margin-bottom:6px}
 
 .review-card-wrapper{perspective:600px}
 .review-card{
-  background:#fff;border-radius:20px;padding:32px 24px;min-height:220px;
+  background:var(--card);border-radius:20px;padding:32px 24px;min-height:200px;
   box-shadow:0 4px 24px rgba(0,0,0,.08);text-align:center;display:flex;
-  flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;
   position:relative;overflow:hidden;transition:transform .3s,opacity .3s
 }
 .review-card.swipe-out{transform:translateX(100%);opacity:0}
 .review-card.swipe-left{transform:translateX(-100%);opacity:0}
 
-.review-stage{font-size:12px;color:#94A3B8;padding:3px 10px;background:#F1F5F9;border-radius:10px}
-.review-cat{font-size:11px;color:#4A6CF7;padding:2px 8px;background:#EEF2FF;border-radius:8px;font-weight:600}
-.review-hint{font-size:15px;color:#64748B}
-.review-content{
-  font-size:20px;font-weight:700;color:#1E293B;line-height:1.6;
+.review-stage{font-size:12px;color:var(--muted);padding:3px 10px;background:var(--bg);border-radius:10px}
+.review-cat{font-size:11px;color:var(--pri);padding:2px 8px;background:var(--pri-bg);border-radius:8px;font-weight:600}
+.review-hint{font-size:15px;color:var(--sub)}
+
+/* ── 短句大字 ── */
+.review-front{
+  font-size:24px;font-weight:800;color:var(--text);line-height:1.4;
   word-break:break-word;max-width:100%;padding:0 4px
 }
+/* ── 中段标准 ── */
+.review-back{
+  font-size:18px;font-weight:600;color:var(--pri);line-height:1.5;
+  word-break:break-word;max-width:100%;padding:0 4px
+}
+/* ── 纯内容（长短自适应） ── */
+.review-content{
+  font-size:20px;font-weight:700;color:var(--text);line-height:1.6;
+  word-break:break-word;max-width:100%;padding:0 4px
+}
+.review-content.long{
+  font-size:16px;font-weight:500;text-align:left;max-height:300px;overflow-y:auto
+}
 
-.rating-row{display:flex;gap:10px;width:100%;margin-top:8px}
+.rating-row{display:flex;gap:10px;width:100%;margin-top:4px}
 .rating-btn{
-  flex:1;padding:14px 8px;border-radius:14px;border:2px solid #E2E8F0;
-  background:#fff;font-size:14px;font-weight:600;cursor:pointer;
+  flex:1;padding:14px 8px;border-radius:14px;border:2px solid var(--border);
+  background:var(--card);font-size:14px;font-weight:600;cursor:pointer;
   transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px;
   -webkit-tap-highlight-color:transparent
 }
 .rating-btn:active{transform:scale(.96)}
 .rating-btn .r-emoji{font-size:20px}
-.rating-btn.forgot:active,.rating-btn.forgot:hover{border-color:#EF4444;background:#FEF2F2}
-.rating-btn.vague:active,.rating-btn.vague:hover{border-color:#F59E0B;background:#FFFBEB}
-.rating-btn.gotit:active,.rating-btn.gotit:hover{border-color:#10B981;background:#ECFDF5}
+.rating-btn.forgot:active,.rating-btn.forgot:hover{border-color:var(--danger);background:var(--danger-bg)}
+.rating-btn.vague:active,.rating-btn.vague:hover{border-color:var(--warn);background:var(--warn-bg)}
+.rating-btn.gotit:active,.rating-btn.gotit:hover{border-color:var(--ok);background:var(--ok-bg)}
 
 .review-summary{text-align:center;padding:30px 0}
 .review-summary .emoji{font-size:56px;margin-bottom:12px}
 .review-summary .title{font-size:20px;font-weight:800;margin-bottom:6px}
-.review-summary .detail{font-size:14px;color:#64748B;margin-bottom:4px}
+.review-summary .detail{font-size:14px;color:var(--sub);margin-bottom:4px}
 
 /* ── Category Selector ── */
 .cat-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .cat-chip{
   padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;
-  border:2px solid #E2E8F0;background:#fff;color:#64748B;transition:all .15s;
-  white-space:nowrap
+  border:2px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s;white-space:nowrap
 }
-.cat-chip.selected{border-color:#4A6CF7;background:#EEF2FF;color:#4A6CF7;font-weight:600}
-.cat-chip.all-chip{border-style:dashed}
+.cat-chip.selected{border-color:var(--pri);background:var(--pri-bg);color:var(--pri);font-weight:600}
 
 .import-textarea{
-  width:100%;min-height:180px;border:2px solid #E2E8F0;border-radius:14px;
+  width:100%;min-height:160px;border:2px solid var(--border);border-radius:14px;
   padding:16px;font-size:15px;font-family:inherit;resize:vertical;
-  outline:none;transition:border-color .15s;line-height:1.6;color:#1E293B
+  outline:none;transition:border-color .15s;line-height:1.6;color:var(--text)
 }
-.import-textarea:focus{border-color:#4A6CF7}
-.import-hint{font-size:12px;color:#94A3B8;margin-top:6px;line-height:1.5}
+.import-textarea:focus{border-color:var(--pri)}
+.import-hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
 .import-preview{margin-top:12px;max-height:160px;overflow-y:auto}
 
 .preview-item{
-  padding:10px 14px;background:#fff;border-radius:10px;margin-bottom:6px;
-  font-size:14px;color:#334155;border-left:3px solid #4A6CF7;
-  box-shadow:0 1px 2px rgba(0,0,0,.04)
+  padding:10px 14px;background:var(--card);border-radius:10px;margin-bottom:6px;
+  font-size:14px;color:#334155;border-left:3px solid var(--pri);box-shadow:var(--shadow)
 }
-.preview-item .idx{font-size:11px;color:#94A3B8;margin-right:6px}
+.preview-item .idx{font-size:11px;color:var(--muted);margin-right:6px}
 
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
@@ -134,14 +149,15 @@ body{
   -webkit-tap-highlight-color:transparent
 }
 .btn:active{transform:scale(.97)}
-.btn-primary{background:#4A6CF7;color:#fff}
+.btn-primary{background:var(--pri);color:#fff}
 .btn-primary:active{background:#3B5DE7}
-.btn-outline{background:#fff;color:#4A6CF7;border:2px solid #4A6CF7}
-.btn-danger{background:#FEF2F2;color:#EF4444;border:2px solid #FEE2E2}
+.btn-outline{background:var(--card);color:var(--pri);border:2px solid var(--pri)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:2px solid #FEE2E2}
 .btn-danger:active{background:#FEE2E2}
 .btn-sm{padding:8px 16px;font-size:13px;width:auto}
 .btn-xs{padding:5px 12px;font-size:12px;width:auto;border-radius:8px}
 .btn:disabled{opacity:.5;pointer-events:none}
+.btn-row{display:flex;gap:8px}
 
 .toast{
   position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;
@@ -152,40 +168,49 @@ body{
 .toast.show{opacity:1}
 
 .note-list-item{
-  display:flex;justify-content:space-between;align-items:center;gap:8px;
-  padding:10px 14px;background:#fff;border-radius:12px;margin-bottom:6px;
-  box-shadow:0 1px 2px rgba(0,0,0,.04)
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+  padding:8px 12px;background:var(--card);border-radius:12px;margin-bottom:6px;
+  box-shadow:var(--shadow)
 }
-.note-list-item .n-content{flex:1;font-size:14px;color:#334155;min-width:0}
-.note-list-item .n-meta{font-size:11px;color:#94A3B8;white-space:nowrap}
-.note-list-item .n-cat{font-size:10px;background:#EEF2FF;color:#4A6CF7;padding:2px 8px;border-radius:8px;white-space:nowrap;font-weight:500}
-
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;
-  display:flex;align-items:center;justify-content:center;
-  animation:fadeIn .2s
-}
-.modal-box{
-  background:#fff;border-radius:20px;padding:24px;width:calc(100% - 48px);
-  max-width:400px;max-height:80vh;overflow-y:auto
-}
-.modal-box h3{font-size:17px;font-weight:700;margin-bottom:12px}
-.modal-box p{font-size:14px;color:#64748B;margin-bottom:12px;line-height:1.6}
-.modal-actions{display:flex;gap:10px}
-.modal-input{
-  width:100%;padding:10px 14px;border:2px solid #E2E8F0;border-radius:10px;
-  font-size:14px;font-family:inherit;outline:none;margin-bottom:10px
-}
-.modal-input:focus{border-color:#4A6CF7}
+.note-list-item .n-content{flex:1;font-size:14px;color:#334155;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.note-list-item .n-cat{font-size:10px;background:var(--pri-bg);color:var(--pri);padding:2px 8px;border-radius:8px;white-space:nowrap;font-weight:500;flex-shrink:0}
+.note-list-item .n-meta{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.note-list-item .n-acts{display:flex;gap:4px;flex-shrink:0}
+.note-list-item .n-acts button{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0}
+.note-list-item .n-acts button:active{background:var(--bg)}
 
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .filter-chip{
   padding:6px 14px;border-radius:16px;font-size:12px;font-weight:500;cursor:pointer;
-  border:2px solid #E2E8F0;background:#fff;color:#64748B;transition:all .15s
+  border:2px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s
 }
-.filter-chip.selected{border-color:#4A6CF7;background:#EEF2FF;color:#4A6CF7}
+.filter-chip.selected{border-color:var(--pri);background:var(--pri-bg);color:var(--pri)}
 
-input[type=text]{outline:none}
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;
+  display:flex;align-items:center;justify-content:center;animation:fadeIn .2s
+}
+.modal-box{
+  background:var(--card);border-radius:20px;padding:24px;width:calc(100% - 48px);
+  max-width:400px;max-height:85vh;overflow-y:auto
+}
+.modal-box h3{font-size:17px;font-weight:700;margin-bottom:14px}
+.modal-box label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px;margin-top:10px}
+.modal-box label:first-of-type{margin-top:0}
+.modal-box p{font-size:14px;color:var(--sub);margin-bottom:12px;line-height:1.6}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+
+.modal-input{
+  width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:inherit;outline:none
+}
+.modal-input:focus{border-color:var(--pri)}
+.modal-textarea{
+  width:100%;min-height:80px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:inherit;outline:none;resize:vertical
+}
+.modal-textarea:focus{border-color:var(--pri)}
 </style>
 </head>
 <body>
@@ -207,25 +232,31 @@ input[type=text]{outline:none}
 <div class="main"><div class="page" id="page-import">
   <div class="header">
     <h1>📥 导入笔记</h1>
-    <div class="sub">选择分类，用 <code>---</code> 分隔每条笔记</div>
+    <div class="sub">选择分类，用 <code>---</code> 分隔，用 <code>|</code> 拆正反面</div>
   </div>
   <div class="card" style="padding:14px">
-    <div style="font-size:13px;color:#64748B;margin-bottom:8px">📂 选择导入分类</div>
+    <div style="font-size:13px;color:var(--sub);margin-bottom:8px">📂 导入到分类</div>
     <div class="cat-selector" id="cat-selector"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-sm btn-outline" id="manage-cat-btn" style="width:auto">⚙️ 管理分类</button>
-    </div>
+    <button class="btn btn-sm btn-outline" id="manage-cat-btn" style="width:auto;margin-top:4px">⚙️ 管理分类</button>
   </div>
-  <textarea class="import-textarea" id="import-ta" placeholder="在此粘贴笔记内容，每条之间用 --- 分隔&#10;&#10;例如：&#10;艾宾浩斯遗忘曲线表明记忆在20分钟后遗忘42%&#10;---&#10;间隔重复是长期记忆最有效的方法"></textarea>
-  <div class="import-hint">💡 用 <code>---</code>（三个短横线，单独一行）分隔每条笔记，最多 50 字/条</div>
+  <textarea class="import-textarea" id="import-ta" placeholder="在此粘贴笔记，每条用 --- 分隔&#10;支持正反面：正面内容 | 反面内容&#10;&#10;例如：&#10;画蛇添足 | 比喻做事多余 &#10;---&#10;艾宾浩斯遗忘曲线表明记忆在20分钟后遗忘42%&#10;---&#10;SiC具有高导热率 | 适用于先进封装散热场景"></textarea>
+  <div class="import-hint">💡 <code>---</code> 分隔每条笔记 · <code>|</code> 拆分正反面（复习时先看正面再翻转）</div>
   <div class="import-preview" id="import-preview"></div>
   <button class="btn btn-primary" id="import-btn" style="margin-top:14px">📥 导入笔记</button>
+
   <div style="margin-top:20px">
-    <div class="card-title">📋 已导入的笔记</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="card-title" style="margin:0">📋 笔记列表</div>
+      <div class="btn-row">
+        <button class="btn btn-xs btn-outline" id="export-btn" style="width:auto">📤 导出</button>
+        <button class="btn btn-xs btn-outline" id="import-json-btn" style="width:auto">📥 导入</button>
+      </div>
+    </div>
     <div class="filter-row" id="note-filter"></div>
     <div id="note-list"></div>
     <button class="btn btn-danger btn-sm" id="clear-btn" style="margin-top:10px">🗑 清空全部笔记</button>
   </div>
+  <input type="file" id="import-file" accept=".json" style="display:none">
 </div></div>
 
 <!-- ═══════════ 统计页 ═══════════ -->
@@ -252,11 +283,10 @@ input[type=text]{outline:none}
 
 <script>
 /* ═══════════════════════════════════════════
-   艾宾浩斯记忆助手 v2 — 分类 + 乱序复习
+   记忆助手 v3 — 正反面 + 编辑删除 + 导出导入
    ═══════════════════════════════════════════ */
 
-// ── IndexedDB ──
-const DB_NAME = 'ebbinghaus-db', DB_VER = 2;
+const DB_NAME = 'ebbinghaus-db', DB_VER = 3;
 let db;
 
 function openDB(){
@@ -270,7 +300,6 @@ function openDB(){
         s.createIndex('stage','stage');
         s.createIndex('category','category');
       }
-      // v1→v2: 添加 category 索引（已存在的 store 只需加 index，已在上面 createIndex 覆盖）
     };
     r.onsuccess = e => { db = e.target.result; res(db); };
     r.onerror = () => rej(r.error);
@@ -279,238 +308,109 @@ function openDB(){
 
 function dbPut(note){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').put(note); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
 function dbGetAll(){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readonly').objectStore('notes').getAll(); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
+function dbGet(id){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readonly').objectStore('notes').get(id); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
+function dbDelete(id){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').delete(id); t.onsuccess=()=>res(); t.onerror=()=>rej(t.error); }); }
 function dbClear(){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').clear(); t.onsuccess=()=>res(); t.onerror=()=>rej(t.error); }); }
 
-// ── 分类管理（localStorage） ──
+// ── 分类管理 ──
 const CAT_KEY = 'ebbinghaus-cats';
 const DEFAULT_CAT = '未分类';
+function getCats(){ try { const v=localStorage.getItem(CAT_KEY); return v?JSON.parse(v):[DEFAULT_CAT]; } catch(e){ return[DEFAULT_CAT]; } }
+function saveCats(c){ localStorage.setItem(CAT_KEY,JSON.stringify(c)); }
+(function(){ const c=getCats(); if(!c.includes(DEFAULT_CAT)){c.unshift(DEFAULT_CAT);saveCats(c);} })();
 
-function getCats(){
-  try { const v = localStorage.getItem(CAT_KEY); return v ? JSON.parse(v) : [DEFAULT_CAT]; }
-  catch(e) { return [DEFAULT_CAT]; }
-}
-function saveCats(cats){ localStorage.setItem(CAT_KEY, JSON.stringify(cats)); }
-
-// 确保默认分类存在
-(function ensureCats(){
-  const cats = getCats();
-  if(!cats.includes(DEFAULT_CAT)){ cats.unshift(DEFAULT_CAT); saveCats(cats); }
-})();
-
-// ── Ebbinghaus 算法 ──
+// ── Ebbinghaus ──
 const INTERVALS = [1,2,4,7,15,30,60];
-
-function calcNextReview(stage, rating){
-  if(rating === 'forgot') return { stage: 0, nextReview: addDays(now(), INTERVALS[0]) };
-  if(rating === 'vague'){ const s = Math.max(stage - 1, 0); return { stage: s, nextReview: addDays(now(), INTERVALS[s]) }; }
-  const s = Math.min(stage + 1, INTERVALS.length);
-  if(s === INTERVALS.length) return { stage: s, nextReview: null };
-  return { stage: s, nextReview: addDays(now(), INTERVALS[s]) };
+function calcNextReview(stage,rating){
+  if(rating==='forgot') return{stage:0,nextReview:addDays(now(),INTERVALS[0])};
+  if(rating==='vague'){const s=Math.max(stage-1,0);return{stage:s,nextReview:addDays(now(),INTERVALS[s])};}
+  const s=Math.min(stage+1,INTERVALS.length);
+  if(s===INTERVALS.length)return{stage:s,nextReview:null};
+  return{stage:s,nextReview:addDays(now(),INTERVALS[s])};
 }
-function now(){ return Date.now(); }
-function addDays(ts, days){ return ts + days * 86400000; }
+function now(){return Date.now();}
+function addDays(ts,d){return ts+d*86400000;}
 function stageLabel(s){
-  if(s >= INTERVALS.length) return '✅ 已掌握';
-  if(s === 0) return '🆕 新学';
-  return `🔄 第${s}次复习（${INTERVALS[s]}天）`;
+  if(s>=INTERVALS.length)return'✅ 已掌握';
+  if(s===0)return'🆕 新学';
+  return`🔄 第${s}次复习（${INTERVALS[s]}天）`;
 }
 
-// ── 乱序洗牌 ──
-function shuffle(arr){
-  const a = [...arr];
-  for(let i = a.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];} return r; }
+
+// ── 字数分档 ──
+function contentClass(s){ return (s||'').length>100?' long':''; }
 
 // ── Toast ──
-let toastTimer;
-function toast(msg){
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 1800);
-}
+let ttTimer;
+function toast(m){ const e=document.getElementById('toast'); e.textContent=m;e.classList.add('show');clearTimeout(ttTimer);ttTimer=setTimeout(()=>e.classList.remove('show'),1800); }
 
-// ── Tab 切换 ──
-let currentTab = 'review';
-document.querySelectorAll('.tab-item').forEach(btn => {
-  btn.addEventListener('click', ()=>{
-    currentTab = btn.dataset.page;
-    document.querySelectorAll('.tab-item').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('page-'+currentTab).classList.add('active');
-    if(currentTab==='review') renderReviewDashboard();
-    if(currentTab==='import'){ renderCatSelector(); renderNoteList(); }
-    if(currentTab==='stats') renderStats();
-  });
-});
+// ── Helpers ──
+function eHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function eAttr(s){return s.replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function todayStr(){return new Date().toISOString().slice(0,10);}
 
-// ── 分类选择器渲染 ──
-let selectedCat = DEFAULT_CAT;
+// ── Tab ──
+let currentTab='review';
+document.querySelectorAll('.tab-item').forEach(b=>{b.addEventListener('click',()=>{currentTab=b.dataset.page;document.querySelectorAll('.tab-item').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('page-'+currentTab).classList.add('active');if(currentTab==='review')renderReviewDashboard();if(currentTab==='import'){renderCatSelector();renderNoteList();}if(currentTab==='stats')renderStats();});});
 
+// ── 分类选择器 ──
+let selectedCat=DEFAULT_CAT;
 function renderCatSelector(){
-  const cats = getCats();
-  const el = document.getElementById('cat-selector');
-  el.innerHTML = cats.map(c => {
-    const sel = c === selectedCat ? ' selected' : '';
-    return `<span class="cat-chip${sel}" data-cat="${escapeAttr(c)}" onclick="selectCat('${escapeAttr(c)}')">${escapeHtml(c)}</span>`;
-  }).join('');
+  const c=getCats();
+  document.getElementById('cat-selector').innerHTML=c.map(x=>`<span class="cat-chip${x===selectedCat?' selected':''}" onclick="selectCat('${eAttr(x)}')">${eHtml(x)}</span>`).join('');
 }
-
-function selectCat(cat){
-  selectedCat = cat;
-  renderCatSelector();
-}
+function selectCat(c){selectedCat=c;renderCatSelector();}
 
 // ── 分类管理弹窗 ──
-document.getElementById('manage-cat-btn').addEventListener('click', showCatManager);
-
-function showCatManager(){
-  const cats = getCats();
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <h3>📂 管理分类</h3>
-      <div id="cat-list-modal" style="margin-bottom:14px">
-        ${cats.map((c,i)=>`
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9">
-            <span style="font-size:14px">${escapeHtml(c)}</span>
-            ${c === DEFAULT_CAT ? '<span style="font-size:11px;color:#94A3B8">默认</span>' : `<button class="btn btn-xs btn-danger" onclick="deleteCat('${escapeAttr(c)}')" style="width:auto">删除</button>`}
-          </div>`).join('')}
-      </div>
-      <div style="display:flex;gap:8px">
-        <input class="modal-input" id="new-cat-input" placeholder="输入新分类名" maxlength="10">
-        <button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button>
-      </div>
-      <div class="modal-actions" style="margin-top:14px">
-        <button class="btn btn-sm btn-outline" id="close-cat-modal">关闭</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-
-  overlay.querySelector('#close-cat-modal').addEventListener('click', ()=>{
-    overlay.remove(); renderCatSelector(); renderReviewDashboard(); renderNoteList();
-  });
-  overlay.querySelector('#add-cat-btn').addEventListener('click', ()=>{
-    const input = overlay.querySelector('#new-cat-input');
-    const name = input.value.trim();
-    if(!name){ toast('请输入分类名'); return; }
-    if(name.length > 10){ toast('分类名不超过10个字'); return; }
-    const cats = getCats();
-    if(cats.includes(name)){ toast('分类名已存在'); return; }
-    cats.push(name); saveCats(cats);
-    input.value = '';
-    overlay.remove(); showCatManager(); // 刷新弹窗
-    renderCatSelector();
-  });
-  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+document.getElementById('manage-cat-btn').addEventListener('click',showCatMgr);
+function showCatMgr(){
+  const c=getCats();const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box"><h3>📂 管理分类</h3><div style="margin-bottom:12px">${c.map((x,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px">${eHtml(x)}</span>${x===DEFAULT_CAT?'<span style="font-size:11px;color:var(--muted)">默认</span>':`<button class="btn btn-xs btn-danger" onclick="delCat('${eAttr(x)}')" style="width:auto">删除</button>`}</div>`).join('')}</div><div style="display:flex;gap:8px"><input class="modal-input" id="new-cat-input" placeholder="新分类名" maxlength="10"><button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button></div><div class="modal-actions"><button class="btn btn-sm btn-outline" id="close-cm">关闭</button></div></div>`;
+  document.body.appendChild(o);
+  o.querySelector('#close-cm').onclick=()=>{o.remove();renderCatSelector();renderReviewDashboard();renderNoteList();};
+  o.querySelector('#add-cat-btn').onclick=()=>{
+    const v=o.querySelector('#new-cat-input').value.trim();
+    if(!v){toast('请输入分类名');return;}if(v.length>10){toast('不超过10字');return;}
+    const cs=getCats();if(cs.includes(v)){toast('已存在');return;}
+    cs.push(v);saveCats(cs);o.remove();showCatMgr();renderCatSelector();
+  };
+  o.addEventListener('click',e=>{if(e.target===o)o.remove();});
+}
+function delCat(cat){
+  if(cat===DEFAULT_CAT){toast('不能删除默认分类');return;}
+  if(!confirm(`确定删除「${cat}」？笔记将归入「未分类」。`))return;
+  dbGetAll().then(all=>Promise.all(all.filter(n=>n.category===cat).map(n=>{n.category=DEFAULT_CAT;return dbPut(n);}))).then(()=>{const cs=getCats().filter(x=>x!==cat);saveCats(cs);selectedCat=DEFAULT_CAT;document.querySelector('.modal-overlay')?.remove();showCatMgr();renderCatSelector();});
 }
 
-function deleteCat(cat){
-  if(cat === DEFAULT_CAT){ toast('不能删除默认分类'); return; }
-  if(!confirm(`确定删除分类「${cat}」？该分类下的笔记将移至「未分类」。`)) return;
-  // 将该分类下的笔记移到默认分类
-  dbGetAll().then(all => {
-    const tasks = all.filter(n=>n.category===cat).map(n=>{ n.category=DEFAULT_CAT; return dbPut(n); });
-    return Promise.all(tasks);
-  }).then(()=>{
-    const cats = getCats().filter(c=>c!==cat); saveCats(cats);
-    selectedCat = DEFAULT_CAT;
-    toast(`已删除分类「${cat}」`);
-    // 重新打开管理弹窗
-    document.querySelector('.modal-overlay')?.remove();
-    showCatManager();
-    renderCatSelector();
-  });
-}
-
-function escapeAttr(s){ return s.replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ── 复习状态 ──
-let reviewQueue = [];
-let reviewIndex = -1;
-let reviewCatFilter = null; // null=全部, string=指定分类
+// ── 复习 ──
+let reviewQueue=[],reviewIndex=-1,reviewCatFilter=null;
 
 async function renderReviewDashboard(){
-  const all = await dbGetAll();
-  const allDue = await getDueNotes(null); // 全部待复习数量
-  const mastered = all.filter(n=>n.stage >= INTERVALS.length).length;
-  const badge = document.getElementById('due-badge');
-  badge.textContent = allDue.length > 0 ? allDue.length : '';
+  const all=await dbGetAll(),allDue=await getDueNotes(null),mastered=all.filter(n=>n.stage>=INTERVALS.length).length;
+  document.getElementById('due-badge').textContent=allDue.length||'';
+  const dash=document.getElementById('review-dashboard'),active=document.getElementById('review-active'),done=document.getElementById('review-done');
+  active.style.display='none';done.style.display='none';dash.style.display='block';
 
-  const dash = document.getElementById('review-dashboard');
-  const active = document.getElementById('review-active');
-  const done = document.getElementById('review-done');
-  active.style.display='none'; done.style.display='none'; dash.style.display='block';
+  if(all.length===0){dash.innerHTML=`<div class="review-empty"><div class="emoji">📭</div><p>还没有笔记</p><p style="font-size:13px">先去「导入」添加笔记吧</p></div>`;return;}
 
-  if(all.length === 0){
-    dash.innerHTML = `<div class="review-empty"><div class="emoji">📭</div><p>还没有笔记</p><p style="font-size:13px">先去「导入」添加笔记吧</p></div>`;
+  const cats=getCats(),catDue={};
+  cats.forEach(c=>{catDue[c]=allDue.filter(n=>n.category===c).length;});
+  const fHtml=cats.map(c=>{const s=reviewCatFilter===c?' selected':'';return`<span class="filter-chip${s}" onclick="setReviewCat('${eAttr(c)}')">${eHtml(c)} (${catDue[c]||0})</span>`;}).join('');
+  const aSel=reviewCatFilter===null?' selected':'',dueF=reviewCatFilter?allDue.filter(n=>n.category===reviewCatFilter):allDue;
+
+  if(dueF.length===0){
+    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p></div>`;
     return;
   }
-
-  // 分类过滤器
-  const cats = getCats();
-  const catDue = {};
-  cats.forEach(c => { catDue[c] = allDue.filter(n => n.category === c).length; });
-
-  const filterHtml = cats.map(c => {
-    const sel = reviewCatFilter === c ? ' selected' : '';
-    return `<span class="filter-chip${sel}" onclick="setReviewCat('${escapeAttr(c)}')">${escapeHtml(c)} (${catDue[c]||0})</span>`;
-  }).join('');
-  const allSel = reviewCatFilter === null ? ' selected' : '';
-
-  const dueFiltered = reviewCatFilter ? allDue.filter(n=>n.category===reviewCatFilter) : allDue;
-
-  if(dueFiltered.length === 0){
-    dash.innerHTML = `
-      <div class="filter-row"><span class="filter-chip${allSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${filterHtml}</div>
-      <div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter ? '该分类暂无待复习笔记' : '太棒了，全部复习完毕！'}</p><p style="font-size:13px">${mastered>0?mastered+' 条已掌握':'下一轮复习时间还没到'}</p></div>
-      <div class="stat-row">
-        <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
-        <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
-        <div class="stat-box warn"><div class="stat-val">${allDue.length}</div><div class="stat-label">全部待复习</div></div>
-      </div>`;
-    return;
-  }
-
-  dash.innerHTML = `
-    <div class="filter-row"><span class="filter-chip${allSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${filterHtml}</div>
-    <div class="card" style="text-align:center">
-      <div style="font-size:48px;margin-bottom:8px">🧠</div>
-      <div style="font-size:36px;font-weight:800;color:#4A6CF7">${dueFiltered.length}</div>
-      <div style="font-size:14px;color:#64748B;margin-bottom:16px">${reviewCatFilter ? '「'+reviewCatFilter+'」' : ''}待复习 · 乱序出题</div>
-      <button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button>
-    </div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
-      <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
-      <div class="stat-box warn"><div class="stat-val">${allDue.length}</div><div class="stat-label">全部待复习</div></div>
-    </div>`;
+  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${dueF.length}</div><div style="font-size:14px;color:var(--sub);margin-bottom:16px">${reviewCatFilter?'「'+reviewCatFilter+'」':''}待复习 · 乱序出题</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button></div>`;
 }
+function setReviewCat(c){reviewCatFilter=c;document.getElementById('review-sub').textContent=c?`正在学习：${c}`:'艾宾浩斯间隔复习';renderReviewDashboard();}
+async function getDueNotes(cat){const all=await dbGetAll();const n=now();let d=all.filter(x=>x.nextReview!==null&&x.nextReview<=n);if(cat)d=d.filter(x=>x.category===cat);return d;}
 
-function setReviewCat(cat){
-  reviewCatFilter = cat;
-  document.getElementById('review-sub').textContent = cat ? `正在学习：${cat}` : '艾宾浩斯间隔复习';
-  renderReviewDashboard();
-}
-
-async function getDueNotes(cat){
-  const all = await dbGetAll();
-  const n = now();
-  let due = all.filter(x => x.nextReview !== null && x.nextReview <= n);
-  if(cat) due = due.filter(x => x.category === cat);
-  return due;
-}
-
-// ── 开始复习 ──
 async function startReview(){
-  reviewQueue = await getDueNotes(reviewCatFilter);
-  reviewQueue = shuffle(reviewQueue); // ★ 乱序
-  reviewIndex = 0;
-  if(reviewQueue.length === 0){ renderReviewDashboard(); return; }
+  reviewQueue=await getDueNotes(reviewCatFilter);reviewQueue=shuffle(reviewQueue);reviewIndex=0;
+  if(!reviewQueue.length){renderReviewDashboard();return;}
   document.getElementById('review-dashboard').style.display='none';
   document.getElementById('review-active').style.display='block';
   document.getElementById('review-done').style.display='none';
@@ -518,245 +418,179 @@ async function startReview(){
 }
 
 function showCard(){
-  if(reviewIndex >= reviewQueue.length){ finishReview(); return; }
-  const note = reviewQueue[reviewIndex];
-  const container = document.getElementById('review-active');
-  container.innerHTML = `
-    <div class="review-card-wrapper">
-      <div class="review-card" id="review-card">
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center">
-          <span class="review-stage">${stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>
-          ${note.category && note.category !== DEFAULT_CAT ? `<span class="review-cat">📂 ${escapeHtml(note.category)}</span>` : ''}
-        </div>
-        <div class="review-hint">🤔 请在脑中回忆以下内容</div>
-        <button class="btn btn-outline" id="reveal-btn" style="width:auto;margin:8px 0">👁 显示内容</button>
-        <div class="review-content" id="reveal-content" style="display:none">${escapeHtml(note.content)}</div>
-        <div class="rating-row" id="rating-row" style="display:none">
-          <button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button>
-          <button class="rating-btn vague"  onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button>
-          <button class="rating-btn gotit"  onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button>
-        </div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:10px;font-size:13px;color:#94A3B8">${reviewIndex+1} / ${reviewQueue.length}</div>`;
+  if(reviewIndex>=reviewQueue.length){finishReview();return;}
+  const note=reviewQueue[reviewIndex];
+  const hasFB=!!note.front||!!note.back;
+  const container=document.getElementById('review-active');
+
+  if(hasFB){
+    container.innerHTML=`<div class="review-card-wrapper"><div class="review-card" id="review-card"><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center"><span class="review-stage">${stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>${note.category&&note.category!==DEFAULT_CAT?`<span class="review-cat">📂 ${eHtml(note.category)}</span>`:''}</div><div class="review-front" style="min-height:50px">${eHtml(note.front||'（无标题）')}</div><div class="review-hint">先回忆一下，然后点击查看</div><button class="btn btn-outline" id="reveal-btn" style="width:auto">👁 显示答案</button><div id="reveal-area" style="display:none"><div class="review-back">${eHtml(note.back||note.content)}</div></div><div class="rating-row" id="rating-row" style="display:none"><button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button><button class="rating-btn vague" onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button><button class="rating-btn gotit" onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button></div></div></div><div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">${reviewIndex+1}/${reviewQueue.length}</div>`;
+  }else{
+    const len=note.content.length;
+    container.innerHTML=`<div class="review-card-wrapper"><div class="review-card" id="review-card"><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center"><span class="review-stage">${stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>${note.category&&note.category!==DEFAULT_CAT?`<span class="review-cat">📂 ${eHtml(note.category)}</span>`:''}</div><div class="review-hint">先回忆一下，然后点击查看</div><button class="btn btn-outline" id="reveal-btn" style="width:auto">👁 显示内容</button><div class="review-content${contentClass(note.content)}" id="reveal-content" style="display:none">${eHtml(note.content)}</div><div class="rating-row" id="rating-row" style="display:none"><button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button><button class="rating-btn vague" onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button><button class="rating-btn gotit" onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button></div></div></div><div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">${reviewIndex+1}/${reviewQueue.length}</div>`;
+  }
 
   document.getElementById('reveal-btn').addEventListener('click',()=>{
     document.getElementById('reveal-btn').style.display='none';
     document.querySelector('.review-hint').style.display='none';
-    document.getElementById('reveal-content').style.display='block';
+    const revArea=document.getElementById('reveal-area')||document.getElementById('reveal-content');
+    if(revArea)revArea.style.display='block';
     document.getElementById('rating-row').style.display='flex';
   });
 }
 
-// ── 评分 ──
 async function rateCard(rating){
-  const note = reviewQueue[reviewIndex];
-  const result = calcNextReview(note.stage, rating);
-  note.stage = result.stage;
-  note.nextReview = result.nextReview;
-  note.reviewCount = (note.reviewCount||0) + 1;
-  note.lastRating = rating;
+  const note=reviewQueue[reviewIndex];
+  const result=calcNextReview(note.stage,rating);
+  note.stage=result.stage;note.nextReview=result.nextReview;
+  note.reviewCount=(note.reviewCount||0)+1;note.lastRating=rating;
+  if(!note.reviewLog)note.reviewLog=[];
+  note.reviewLog.unshift({date:todayStr(),rating});
   await dbPut(note);
 
-  const card = document.getElementById('review-card');
-  card.classList.add(rating === 'forgot' ? 'swipe-left' : 'swipe-out');
-  const txt = rating==='forgot'?'标记：忘了':rating==='vague'?'标记：模糊':'标记：记住了';
-  toast(txt);
-
+  const card=document.getElementById('review-card');
+  card.classList.add(rating==='forgot'?'swipe-left':'swipe-out');
+  const txt=rating==='forgot'?'忘了':rating==='vague'?'模糊':'记住了';
+  toast('标记：'+txt);
   await new Promise(r=>setTimeout(r,280));
-  reviewIndex++;
-  showCard();
+  reviewIndex++;showCard();
 }
-
-function finishReview(){
-  document.getElementById('review-active').style.display='none';
-  const dash = document.getElementById('review-dashboard');
-  dash.style.display='block';
-  dash.innerHTML = `
-    <div class="review-summary">
-      <div class="emoji">✅</div>
-      <div class="title">本轮复习完成</div>
-      <div class="detail">共复习 ${reviewQueue.length} 条笔记</div>
-    </div>`;
-  reviewQueue=[]; reviewIndex=-1;
-  setTimeout(renderReviewDashboard, 100);
-}
+function finishReview(){document.getElementById('review-active').style.display='none';const d=document.getElementById('review-dashboard');d.style.display='block';d.innerHTML=`<div class="review-summary"><div class="emoji">✅</div><div class="title">本轮复习完成</div><div class="detail">共复习 ${reviewQueue.length} 条</div></div>`;reviewQueue=[];reviewIndex=-1;setTimeout(renderReviewDashboard,100);}
 
 // ── 导入 ──
-document.getElementById('import-btn').addEventListener('click', doImport);
-document.getElementById('import-ta').addEventListener('input', previewImport);
-
-function previewImport(){
-  const raw = document.getElementById('import-ta').value.trim();
-  const items = parseNotes(raw);
-  const preview = document.getElementById('import-preview');
-  if(items.length === 0){ preview.innerHTML=''; return; }
-  preview.innerHTML = items.slice(0,20).map((c,i)=>`<div class="preview-item"><span class="idx">#${i+1}</span>${escapeHtml(c.slice(0,55))}${c.length>55?'…':''}</div>`).join('')
-    + (items.length>20?`<div style="font-size:12px;color:#94A3B8;text-align:center;padding:6px">... 还有 ${items.length-20} 条</div>`:'');
-}
-
-function parseNotes(raw){
-  return raw.split(/\n*---\n*/).map(s=>s.trim()).filter(s=>s.length>0);
-}
+document.getElementById('import-btn').addEventListener('click',doImport);
+document.getElementById('import-ta').addEventListener('input',previewImport);
+function previewImport(){const r=document.getElementById('import-ta').value.trim();const i=parseNotes(r);const p=document.getElementById('import-preview');if(!i.length){p.innerHTML='';return;}p.innerHTML=i.slice(0,20).map((c,j)=>`<div class="preview-item"><span class="idx">#${j+1}</span>${c.front?eHtml(c.front)+' <span style="color:var(--pri)">|</span> '+eHtml(c.back):eHtml(c.content)}</div>`).join('')+(i.length>20?`<div style="font-size:12px;color:var(--muted);text-align:center;padding:6px">... 还有 ${i.length-20} 条</div>`:'');}
+function parseNotes(r){return r.split(/\n*---\n*/).map(s=>s.trim()).filter(s=>s.length>0).map(s=>{const idx=s.indexOf('|');if(idx>0&&idx<s.length-1){return{front:s.slice(0,idx).trim(),back:s.slice(idx+1).trim(),content:s};}return{content:s};});}
 
 async function doImport(){
-  const raw = document.getElementById('import-ta').value.trim();
-  if(!raw){ toast('请先粘贴笔记内容'); return; }
-  const items = parseNotes(raw);
-  if(items.length === 0){ toast('未识别到有效笔记'); return; }
-
-  const over = items.filter(c=>c.length>50);
-  if(over.length > 0){ toast(`有 ${over.length} 条超过50字，请精简后重试`); return; }
-
-  let count = 0;
-  for(const content of items){
-    await dbPut({
-      content,
-      category: selectedCat,
-      stage: 0,
-      nextReview: now(),
-      createdAt: now(),
-      reviewCount: 0,
-      lastRating: null
-    });
+  const r=document.getElementById('import-ta').value.trim();if(!r){toast('请先粘贴');return;}
+  const items=parseNotes(r);if(!items.length){toast('未识别到笔记');return;}
+  let count=0;
+  for(const item of items){
+    await dbPut({...(item.front?{front:item.front,back:item.back}:{}),content:item.content||'',category:selectedCat,stage:0,nextReview:now(),createdAt:now(),reviewCount:0,lastRating:null,reviewLog:[]});
     count++;
   }
-  document.getElementById('import-ta').value = '';
-  document.getElementById('import-preview').innerHTML = '';
-  toast(`✅ 已导入 ${count} 条到「${selectedCat}」`);
-  renderNoteList();
-  renderReviewDashboard();
-  updateBadge();
+  document.getElementById('import-ta').value='';document.getElementById('import-preview').innerHTML='';
+  toast(`✅ 已导入 ${count} 条到「${selectedCat}」`);renderNoteList();renderReviewDashboard();updateBadge();
 }
 
-// ── 笔记列表 ──
-let noteFilterCat = null;
+// ── 笔记列表（含编辑删除） ──
+let noteFilterCat=null;
 async function renderNoteList(){
-  const all = await dbGetAll();
-  const cats = getCats();
+  const all=await dbGetAll(),cats=getCats(),cc={};cats.forEach(c=>{cc[c]=all.filter(n=>n.category===c).length;});
+  const aSel=noteFilterCat===null?' selected':'',fHtml=cats.map(c=>{const s=noteFilterCat===c?' selected':'';return`<span class="filter-chip${s}" onclick="setNoteFilter('${eAttr(c)}')">${eHtml(c)} (${cc[c]||0})</span>`;}).join('');
+  document.getElementById('note-filter').innerHTML=`<span class="filter-chip${aSel}" onclick="setNoteFilter(null)">全部 (${all.length})</span>${fHtml}`;
+  let filtered=noteFilterCat?all.filter(n=>n.category===noteFilterCat):all;
+  const list=document.getElementById('note-list');
+  if(!filtered.length){list.innerHTML='<p style="color:var(--muted);font-size:14px;text-align:center;padding:20px">暂无笔记</p>';return;}
+  list.innerHTML=filtered.sort((a,b)=>b.createdAt-a.createdAt).slice(0,100).map(n=>`<div class="note-list-item"><span class="n-cat">${eHtml(n.category||DEFAULT_CAT)}</span><span class="n-content">${eHtml(n.front?n.front+(' · '+n.back).slice(0,20):(n.content||'').slice(0,40))}</span><span class="n-meta">${stageLabel(n.stage)}</span><span class="n-acts"><button title="编辑" onclick="editNote(${n.id})">✏️</button><button title="删除" onclick="delNote(${n.id})">🗑</button></span></div>`).join('');
+}
+function setNoteFilter(c){noteFilterCat=c;renderNoteList();}
 
-  // 过滤栏
-  const catCounts = {};
-  cats.forEach(c => { catCounts[c] = all.filter(n=>n.category===c).length; });
-  const allSel = noteFilterCat === null ? ' selected' : '';
-  const filterHtml = cats.map(c => {
-    const sel = noteFilterCat === c ? ' selected' : '';
-    return `<span class="filter-chip${sel}" onclick="setNoteFilter('${escapeAttr(c)}')">${escapeHtml(c)} (${catCounts[c]||0})</span>`;
-  }).join('');
-  document.getElementById('note-filter').innerHTML = `<span class="filter-chip${allSel}" onclick="setNoteFilter(null)">全部 (${all.length})</span>${filterHtml}`;
-
-  const list = document.getElementById('note-list');
-  let filtered = all;
-  if(noteFilterCat) filtered = all.filter(n=>n.category===noteFilterCat);
-
-  if(filtered.length === 0){
-    list.innerHTML = '<p style="color:#94A3B8;font-size:14px;text-align:center;padding:20px">暂无笔记</p>'; return;
-  }
-  list.innerHTML = filtered.sort((a,b)=>b.createdAt-a.createdAt).slice(0,50).map(n=>`
-    <div class="note-list-item">
-      <span class="n-cat">${escapeHtml(n.category||DEFAULT_CAT)}</span>
-      <span class="n-content" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(n.content.slice(0,30))}${n.content.length>30?'…':''}</span>
-      <span class="n-meta">${stageLabel(n.stage)}</span>
-    </div>`).join('');
+async function editNote(id){
+  const note=await dbGet(id);if(!note)return;
+  const cats=getCats();
+  const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box"><h3>✏️ 编辑笔记</h3><label>正面（复习时先显示）</label><textarea class="modal-textarea" id="efront">${eHtml(note.front||'')}</textarea><label>反面（点「显示答案」后显示）</label><textarea class="modal-textarea" id="eback">${eHtml(note.back||'')}</textarea><label>分类</label><select class="modal-input" id="ecat">${cats.map(c=>`<option value="${eAttr(c)}"${c===note.category?' selected':''}>${eHtml(c)}</option>`).join('')}</select><div class="modal-actions"><button class="btn btn-outline btn-sm" id="ecancel">取消</button><button class="btn btn-primary btn-sm" id="esave">保存</button></div></div>`;
+  document.body.appendChild(o);
+  o.querySelector('#ecancel').onclick=()=>o.remove();
+  o.querySelector('#esave').onclick=async()=>{
+    const front=o.querySelector('#efront').value.trim(),back=o.querySelector('#eback').value.trim(),cat=o.querySelector('#ecat').value;
+    note.front=front||null;note.back=back||null;
+    if(front||back)note.content=front+(back?' | '+back:'');
+    else note.content=front||back||note.content;
+    note.category=cat;
+    await dbPut(note);o.remove();renderNoteList();renderReviewDashboard();toast('已保存');
+  };
+  o.addEventListener('click',e=>{if(e.target===o)o.remove();});
+}
+async function delNote(id){
+  const note=await dbGet(id);
+  const preview=note.front?`「${note.front.slice(0,20)}」`:`「${(note.content||'').slice(0,20)}」`;
+  if(!confirm(`确定删除 ${preview}？`))return;
+  await dbDelete(id);renderNoteList();renderReviewDashboard();updateBadge();toast('已删除');
 }
 
-function setNoteFilter(cat){ noteFilterCat = cat; renderNoteList(); }
+// ── 导出 ──
+document.getElementById('export-btn').addEventListener('click',async()=>{
+  const all=await dbGetAll(),cats=getCats();
+  const data={version:3,exportedAt:new Date().toISOString(),categories:cats,notes:all};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ebbinghaus-backup-'+todayStr()+'.json';a.click();
+  toast('✅ 已导出 '+all.length+' 条笔记');
+});
+
+// ── 导入 JSON ──
+document.getElementById('import-json-btn').addEventListener('click',()=>document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const text=await f.text();let data;try{data=JSON.parse(text);}catch(err){toast('JSON 格式错误');return;}
+  if(!data.notes||!Array.isArray(data.notes)){toast('无效的备份文件');return;}
+  const exist=await dbGetAll(),existKeys=new Set(exist.map(n=>(n.category||'')+'::'+(n.content||'')));
+  let added=0,skipped=0;
+  for(const n of data.notes){
+    const key=(n.category||'')+'::'+(n.content||'');
+    if(existKeys.has(key)){skipped++;continue;}
+    delete n.id; if(!n.reviewLog)n.reviewLog=[];
+    await dbPut(n);existKeys.add(key);added++;
+  }
+  // 合并分类
+  if(data.categories){const cs=getCats();data.categories.forEach(c=>{if(!cs.includes(c))cs.push(c);});saveCats(cs);}
+  toast(`✅ 导入 ${added} 条，跳过 ${skipped} 条重复`);
+  document.getElementById('import-file').value='';
+  renderCatSelector();renderNoteList();renderReviewDashboard();updateBadge();
+});
 
 // ── 清空 ──
-document.getElementById('clear-btn').addEventListener('click', async ()=>{
-  const all = await dbGetAll();
-  if(all.length === 0){ toast('没有可清空的笔记'); return; }
-  if(confirm(`确定要删除全部 ${all.length} 条笔记吗？此操作不可撤销。`)){
-    await dbClear();
-    toast('已清空全部笔记');
-    noteFilterCat = null;
-    renderNoteList();
-    renderReviewDashboard();
-    updateBadge();
-  }
+document.getElementById('clear-btn').addEventListener('click',async()=>{
+  const all=await dbGetAll();if(!all.length){toast('无笔记');return;}
+  if(confirm(`确定删除全部 ${all.length} 条？`)){await dbClear();toast('已清空');noteFilterCat=null;renderNoteList();renderReviewDashboard();updateBadge();}
 });
 
 // ── 统计 ──
 async function renderStats(){
-  const all = await dbGetAll();
-  const mastered = all.filter(n=>n.stage >= INTERVALS.length).length;
-  const allDue = await getDueNotes(null);
-  const totalReviews = all.reduce((s,n)=>s+(n.reviewCount||0),0);
+  const all=await dbGetAll(),mastered=all.filter(n=>n.stage>=INTERVALS.length).length,allDue=await getDueNotes(null);
+  const totalReviews=all.reduce((s,n)=>s+(n.reviewCount||0),0);
+  const todayCount=all.reduce((s,n)=>s+(n.reviewLog||[]).filter(l=>l.date===todayStr()).length,0);
 
-  // 各阶段分布
-  const stageCount = {};
-  for(let i=0;i<=INTERVALS.length;i++) stageCount[i]=0;
-  all.forEach(n=>{ stageCount[Math.min(n.stage, INTERVALS.length)]++; });
+  const sc={};for(let i=0;i<=INTERVALS.length;i++)sc[i]=0;
+  all.forEach(n=>{sc[Math.min(n.stage,INTERVALS.length)]++;});
+  const sn=['新学(1天)','第1次(2天)','第2次(4天)','第3次(7天)','第4次(15天)','第5次(30天)','第6次(60天)','已掌握'];
+  const sh=sn.map((n,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:var(--sub)">${n}</span><span style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#334155">${sc[i]||0} 条</span><span style="display:inline-block;width:${Math.max((sc[i]||0)/Math.max(all.length,1)*120,2)}px;height:6px;background:${i>=INTERVALS.length?var(--ok):var(--pri)};border-radius:3px;opacity:${0.3+(i/INTERVALS.length)*0.7}"></span></span></div>`).join('');
 
-  const stageNames = ['新学(1天)','第1次(2天)','第2次(4天)','第3次(7天)','第4次(15天)','第5次(30天)','第6次(60天)','已掌握'];
-  const stagesHtml = stageNames.map((name,i)=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-size:13px;color:#64748B">${name}</span>
-      <span style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:14px;font-weight:600;color:#334155">${stageCount[i]||0} 条</span>
-        <span style="display:inline-block;width:${Math.max((stageCount[i]||0)/Math.max(all.length,1)*120,2)}px;height:6px;background:${i>=INTERVALS.length?'#10B981':'#4A6CF7'};border-radius:3px;opacity:${0.3+(i/INTERVALS.length)*0.7}"></span>
-      </span>
-    </div>`).join('');
+  const cats=getCats(),csHtml=cats.map(c=>{const cnt=all.filter(n=>n.category===c).length,dc=allDue.filter(n=>n.category===c).length,mc=all.filter(n=>n.category===c&&n.stage>=INTERVALS.length).length;return cnt>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:14px;font-weight:500">📂 ${eHtml(c)}</span><div style="display:flex;gap:12px;font-size:13px;color:var(--sub)"><span>总 ${cnt}</span><span style="color:var(--warn)">待 ${dc}</span><span style="color:var(--ok)">✓ ${mc}</span></div></div>`:'';}).filter(Boolean).join('');
 
-  // 各分类统计
-  const cats = getCats();
-  const catStatsHtml = cats.map(c=>{
-    const count = all.filter(n=>n.category===c).length;
-    const dueC = allDue.filter(n=>n.category===c).length;
-    const masteredC = all.filter(n=>n.category===c && n.stage>=INTERVALS.length).length;
-    return count > 0 ? `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9">
-        <span style="font-size:14px;font-weight:500">📂 ${escapeHtml(c)}</span>
-        <div style="display:flex;gap:12px;font-size:13px;color:#64748B">
-          <span>总 ${count}</span><span style="color:#F59E0B">待 ${dueC}</span><span style="color:#10B981">✓ ${masteredC}</span>
-        </div>
-      </div>` : '';
-  }).filter(Boolean).join('');
-
-  document.getElementById('stats-content').innerHTML = `
+  document.getElementById('stats-content').innerHTML=`
     <div class="stat-row">
       <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
       <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
       <div class="stat-box warn"><div class="stat-val">${allDue.length}</div><div class="stat-label">待复习</div></div>
     </div>
-    ${catStatsHtml ? `<div class="card"><div class="card-title">📂 分类概览</div>${catStatsHtml}</div>` : ''}
-    <div class="card">
-      <div class="card-title">📈 学习进度</div>
-      ${stagesHtml}
+    <div class="stat-row">
+      <div class="stat-box accent"><div class="stat-val">${todayCount}</div><div class="stat-label">今日复习</div></div>
+      <div class="stat-box"><div class="stat-val">${totalReviews}</div><div class="stat-label">累计复习</div></div>
     </div>
-    <div class="card">
-      <div class="card-title">📝 复习记录</div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:14px;color:#64748B">累计复习次数</span>
-        <span style="font-size:20px;font-weight:800;color:#4A6CF7">${totalReviews}</span>
-      </div>
-    </div>`;
+    ${csHtml?`<div class="card"><div class="card-title">📂 分类概览</div>${csHtml}</div>`:''}
+    <div class="card"><div class="card-title">📈 学习进度</div>${sh}</div>`;
 }
 
-async function updateBadge(){
-  const due = await getDueNotes(null);
-  document.getElementById('due-badge').textContent = due.length > 0 ? due.length : '';
-}
+async function updateBadge(){const d=await getDueNotes(null);document.getElementById('due-badge').textContent=d.length||'';}
 
 // ── Bootstrap ──
 (async function init(){
   await openDB();
-  // v1→v2 迁移：给旧笔记补 category
-  const all = await dbGetAll();
-  const needsMigration = all.some(n => !n.category);
-  if(needsMigration){
-    const tasks = all.filter(n=>!n.category).map(n=>{ n.category=DEFAULT_CAT; return dbPut(n); });
-    await Promise.all(tasks);
+  // 迁移：补 category + reviewLog
+  const all=await dbGetAll();
+  let migrated=false;
+  for(const n of all){
+    if(!n.category){n.category=DEFAULT_CAT;migrated=true;}
+    if(!n.reviewLog){n.reviewLog=[];migrated=true;}
+    if(migrated)await dbPut(n);
   }
-  renderCatSelector();
-  await renderReviewDashboard();
-  await updateBadge();
-
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  }
+  renderCatSelector();await renderReviewDashboard();await updateBadge();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 })();
-
 </script>
 </body>
 </html>
