@@ -16,8 +16,6 @@ body{
   background:#F1F5F9;color:#1E293B;min-height:100dvh;overflow-x:hidden;
   -webkit-font-smoothing:antialiased
 }
-
-/* ── Tab Bar ── */
 .tab-bar{
   position:fixed;bottom:0;left:0;right:0;height:64px;background:#fff;
   border-top:1px solid #E2E8F0;display:flex;z-index:100;
@@ -37,26 +35,21 @@ body{
 }
 .tab-item .badge:empty{display:none}
 
-/* ── Main Content ── */
 .main{padding:16px 16px 88px;max-width:500px;margin:0 auto}
 .page{display:none;animation:fadeIn .2s}
 .page.active{display:block}
-
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── Header ── */
 .header{text-align:center;padding:20px 0 8px}
 .header h1{font-size:22px;font-weight:800;color:#1E293B;letter-spacing:-0.3px}
 .header .sub{font-size:13px;color:#64748B;margin-top:2px}
 
-/* ── Cards ── */
 .card{
   background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;
   box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)
 }
 .card-title{font-size:15px;font-weight:700;color:#334155;margin-bottom:8px}
 
-/* ── Stat Numbers ── */
 .stat-row{display:flex;gap:10px;margin-bottom:14px}
 .stat-box{
   flex:1;background:#fff;border-radius:14px;padding:16px 12px;text-align:center;
@@ -68,7 +61,6 @@ body{
 .stat-box.success .stat-val{color:#10B981}
 .stat-box.warn  .stat-val{color:#F59E0B}
 
-/* ── Review ── */
 .review-empty{text-align:center;padding:40px 0}
 .review-empty .emoji{font-size:56px;margin-bottom:12px}
 .review-empty p{color:#94A3B8;font-size:15px;margin-bottom:6px}
@@ -84,12 +76,12 @@ body{
 .review-card.swipe-left{transform:translateX(-100%);opacity:0}
 
 .review-stage{font-size:12px;color:#94A3B8;padding:3px 10px;background:#F1F5F9;border-radius:10px}
+.review-cat{font-size:11px;color:#4A6CF7;padding:2px 8px;background:#EEF2FF;border-radius:8px;font-weight:600}
 .review-hint{font-size:15px;color:#64748B}
 .review-content{
   font-size:20px;font-weight:700;color:#1E293B;line-height:1.6;
   word-break:break-word;max-width:100%;padding:0 4px
 }
-.review-reveal-btn{display:none}
 
 .rating-row{display:flex;gap:10px;width:100%;margin-top:8px}
 .rating-btn{
@@ -109,7 +101,16 @@ body{
 .review-summary .title{font-size:20px;font-weight:800;margin-bottom:6px}
 .review-summary .detail{font-size:14px;color:#64748B;margin-bottom:4px}
 
-/* ── Import ── */
+/* ── Category Selector ── */
+.cat-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cat-chip{
+  padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;
+  border:2px solid #E2E8F0;background:#fff;color:#64748B;transition:all .15s;
+  white-space:nowrap
+}
+.cat-chip.selected{border-color:#4A6CF7;background:#EEF2FF;color:#4A6CF7;font-weight:600}
+.cat-chip.all-chip{border-style:dashed}
+
 .import-textarea{
   width:100%;min-height:180px;border:2px solid #E2E8F0;border-radius:14px;
   padding:16px;font-size:15px;font-family:inherit;resize:vertical;
@@ -126,7 +127,6 @@ body{
 }
 .preview-item .idx{font-size:11px;color:#94A3B8;margin-right:6px}
 
-/* ── Buttons ── */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
   padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;
@@ -140,9 +140,9 @@ body{
 .btn-danger{background:#FEF2F2;color:#EF4444;border:2px solid #FEE2E2}
 .btn-danger:active{background:#FEE2E2}
 .btn-sm{padding:8px 16px;font-size:13px;width:auto}
+.btn-xs{padding:5px 12px;font-size:12px;width:auto;border-radius:8px}
 .btn:disabled{opacity:.5;pointer-events:none}
 
-/* ── Toast ── */
 .toast{
   position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1E293B;
   color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;
@@ -151,16 +151,15 @@ body{
 }
 .toast.show{opacity:1}
 
-/* ── List ── */
 .note-list-item{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 16px;background:#fff;border-radius:12px;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:10px 14px;background:#fff;border-radius:12px;margin-bottom:6px;
   box-shadow:0 1px 2px rgba(0,0,0,.04)
 }
-.note-list-item .n-content{flex:1;font-size:14px;color:#334155;margin-right:12px}
+.note-list-item .n-content{flex:1;font-size:14px;color:#334155;min-width:0}
 .note-list-item .n-meta{font-size:11px;color:#94A3B8;white-space:nowrap}
+.note-list-item .n-cat{font-size:10px;background:#EEF2FF;color:#4A6CF7;padding:2px 8px;border-radius:8px;white-space:nowrap;font-weight:500}
 
-/* ── Modal ── */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;
   display:flex;align-items:center;justify-content:center;
@@ -171,9 +170,22 @@ body{
   max-width:400px;max-height:80vh;overflow-y:auto
 }
 .modal-box h3{font-size:17px;font-weight:700;margin-bottom:12px}
-.modal-box p{font-size:14px;color:#64748B;margin-bottom:16px;line-height:1.6}
+.modal-box p{font-size:14px;color:#64748B;margin-bottom:12px;line-height:1.6}
 .modal-actions{display:flex;gap:10px}
+.modal-input{
+  width:100%;padding:10px 14px;border:2px solid #E2E8F0;border-radius:10px;
+  font-size:14px;font-family:inherit;outline:none;margin-bottom:10px
+}
+.modal-input:focus{border-color:#4A6CF7}
 
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-chip{
+  padding:6px 14px;border-radius:16px;font-size:12px;font-weight:500;cursor:pointer;
+  border:2px solid #E2E8F0;background:#fff;color:#64748B;transition:all .15s
+}
+.filter-chip.selected{border-color:#4A6CF7;background:#EEF2FF;color:#4A6CF7}
+
+input[type=text]{outline:none}
 </style>
 </head>
 <body>
@@ -184,7 +196,7 @@ body{
 <div class="main"><div class="page active" id="page-review">
   <div class="header">
     <h1>📖 记忆助手</h1>
-    <div class="sub">艾宾浩斯间隔复习</div>
+    <div class="sub" id="review-sub">艾宾浩斯间隔复习</div>
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
@@ -195,14 +207,22 @@ body{
 <div class="main"><div class="page" id="page-import">
   <div class="header">
     <h1>📥 导入笔记</h1>
-    <div class="sub">用 <code>---</code> 分隔每条笔记</div>
+    <div class="sub">选择分类，用 <code>---</code> 分隔每条笔记</div>
   </div>
-  <textarea class="import-textarea" id="import-ta" placeholder="在此粘贴笔记内容，每条之间用 --- 分隔&#10;&#10;例如：&#10;艾宾浩斯遗忘曲线表明记忆在20分钟后遗忘42%&#10;---&#10;间隔重复是长期记忆最有效的方法&#10;---&#10;SiC具有高导热率的特性"></textarea>
+  <div class="card" style="padding:14px">
+    <div style="font-size:13px;color:#64748B;margin-bottom:8px">📂 选择导入分类</div>
+    <div class="cat-selector" id="cat-selector"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm btn-outline" id="manage-cat-btn" style="width:auto">⚙️ 管理分类</button>
+    </div>
+  </div>
+  <textarea class="import-textarea" id="import-ta" placeholder="在此粘贴笔记内容，每条之间用 --- 分隔&#10;&#10;例如：&#10;艾宾浩斯遗忘曲线表明记忆在20分钟后遗忘42%&#10;---&#10;间隔重复是长期记忆最有效的方法"></textarea>
   <div class="import-hint">💡 用 <code>---</code>（三个短横线，单独一行）分隔每条笔记，最多 50 字/条</div>
   <div class="import-preview" id="import-preview"></div>
   <button class="btn btn-primary" id="import-btn" style="margin-top:14px">📥 导入笔记</button>
   <div style="margin-top:20px">
     <div class="card-title">📋 已导入的笔记</div>
+    <div class="filter-row" id="note-filter"></div>
     <div id="note-list"></div>
     <button class="btn btn-danger btn-sm" id="clear-btn" style="margin-top:10px">🗑 清空全部笔记</button>
   </div>
@@ -232,11 +252,11 @@ body{
 
 <script>
 /* ═══════════════════════════════════════════
-   艾宾浩斯记忆助手 — 核心逻辑
+   艾宾浩斯记忆助手 v2 — 分类 + 乱序复习
    ═══════════════════════════════════════════ */
 
 // ── IndexedDB ──
-const DB_NAME = 'ebbinghaus-db', DB_VER = 1;
+const DB_NAME = 'ebbinghaus-db', DB_VER = 2;
 let db;
 
 function openDB(){
@@ -248,7 +268,9 @@ function openDB(){
         const s = d.createObjectStore('notes',{keyPath:'id',autoIncrement:true});
         s.createIndex('nextReview','nextReview');
         s.createIndex('stage','stage');
+        s.createIndex('category','category');
       }
+      // v1→v2: 添加 category 索引（已存在的 store 只需加 index，已在上面 createIndex 覆盖）
     };
     r.onsuccess = e => { db = e.target.result; res(db); };
     r.onerror = () => rej(r.error);
@@ -257,37 +279,47 @@ function openDB(){
 
 function dbPut(note){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').put(note); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
 function dbGetAll(){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readonly').objectStore('notes').getAll(); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
-function dbGet(id){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readonly').objectStore('notes').get(id); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); }); }
-function dbDelete(id){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').delete(id); t.onsuccess=()=>res(); t.onerror=()=>rej(t.error); }); }
 function dbClear(){ return new Promise((res,rej)=>{ const t = db.transaction('notes','readwrite').objectStore('notes').clear(); t.onsuccess=()=>res(); t.onerror=()=>rej(t.error); }); }
 
+// ── 分类管理（localStorage） ──
+const CAT_KEY = 'ebbinghaus-cats';
+const DEFAULT_CAT = '未分类';
+
+function getCats(){
+  try { const v = localStorage.getItem(CAT_KEY); return v ? JSON.parse(v) : [DEFAULT_CAT]; }
+  catch(e) { return [DEFAULT_CAT]; }
+}
+function saveCats(cats){ localStorage.setItem(CAT_KEY, JSON.stringify(cats)); }
+
+// 确保默认分类存在
+(function ensureCats(){
+  const cats = getCats();
+  if(!cats.includes(DEFAULT_CAT)){ cats.unshift(DEFAULT_CAT); saveCats(cats); }
+})();
+
 // ── Ebbinghaus 算法 ──
-// 间隔天数：新→1天→2天→4天→7天→15天→30天→60天（掌握）
 const INTERVALS = [1,2,4,7,15,30,60];
 
 function calcNextReview(stage, rating){
-  // rating: 'forgot' | 'vague' | 'remembered'
-  if(rating === 'forgot'){
-    return { stage: 0, nextReview: addDays(now(), INTERVALS[0]) };
-  }
-  if(rating === 'vague'){
-    const s = Math.max(stage - 1, 0);
-    return { stage: s, nextReview: addDays(now(), INTERVALS[s]) };
-  }
-  // remembered
+  if(rating === 'forgot') return { stage: 0, nextReview: addDays(now(), INTERVALS[0]) };
+  if(rating === 'vague'){ const s = Math.max(stage - 1, 0); return { stage: s, nextReview: addDays(now(), INTERVALS[s]) }; }
   const s = Math.min(stage + 1, INTERVALS.length);
-  if(s === INTERVALS.length){
-    return { stage: s, nextReview: null }; // 已掌握，不再复习
-  }
+  if(s === INTERVALS.length) return { stage: s, nextReview: null };
   return { stage: s, nextReview: addDays(now(), INTERVALS[s]) };
 }
-
 function now(){ return Date.now(); }
 function addDays(ts, days){ return ts + days * 86400000; }
 function stageLabel(s){
   if(s >= INTERVALS.length) return '✅ 已掌握';
   if(s === 0) return '🆕 新学';
   return `🔄 第${s}次复习（${INTERVALS[s]}天）`;
+}
+
+// ── 乱序洗牌 ──
+function shuffle(arr){
+  const a = [...arr];
+  for(let i = a.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
 }
 
 // ── Toast ──
@@ -309,21 +341,105 @@ document.querySelectorAll('.tab-item').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('page-'+currentTab).classList.add('active');
     if(currentTab==='review') renderReviewDashboard();
-    if(currentTab==='import') renderNoteList();
+    if(currentTab==='import'){ renderCatSelector(); renderNoteList(); }
     if(currentTab==='stats') renderStats();
   });
 });
 
+// ── 分类选择器渲染 ──
+let selectedCat = DEFAULT_CAT;
+
+function renderCatSelector(){
+  const cats = getCats();
+  const el = document.getElementById('cat-selector');
+  el.innerHTML = cats.map(c => {
+    const sel = c === selectedCat ? ' selected' : '';
+    return `<span class="cat-chip${sel}" data-cat="${escapeAttr(c)}" onclick="selectCat('${escapeAttr(c)}')">${escapeHtml(c)}</span>`;
+  }).join('');
+}
+
+function selectCat(cat){
+  selectedCat = cat;
+  renderCatSelector();
+}
+
+// ── 分类管理弹窗 ──
+document.getElementById('manage-cat-btn').addEventListener('click', showCatManager);
+
+function showCatManager(){
+  const cats = getCats();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <h3>📂 管理分类</h3>
+      <div id="cat-list-modal" style="margin-bottom:14px">
+        ${cats.map((c,i)=>`
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9">
+            <span style="font-size:14px">${escapeHtml(c)}</span>
+            ${c === DEFAULT_CAT ? '<span style="font-size:11px;color:#94A3B8">默认</span>' : `<button class="btn btn-xs btn-danger" onclick="deleteCat('${escapeAttr(c)}')" style="width:auto">删除</button>`}
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        <input class="modal-input" id="new-cat-input" placeholder="输入新分类名" maxlength="10">
+        <button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button>
+      </div>
+      <div class="modal-actions" style="margin-top:14px">
+        <button class="btn btn-sm btn-outline" id="close-cat-modal">关闭</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#close-cat-modal').addEventListener('click', ()=>{
+    overlay.remove(); renderCatSelector(); renderReviewDashboard(); renderNoteList();
+  });
+  overlay.querySelector('#add-cat-btn').addEventListener('click', ()=>{
+    const input = overlay.querySelector('#new-cat-input');
+    const name = input.value.trim();
+    if(!name){ toast('请输入分类名'); return; }
+    if(name.length > 10){ toast('分类名不超过10个字'); return; }
+    const cats = getCats();
+    if(cats.includes(name)){ toast('分类名已存在'); return; }
+    cats.push(name); saveCats(cats);
+    input.value = '';
+    overlay.remove(); showCatManager(); // 刷新弹窗
+    renderCatSelector();
+  });
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+function deleteCat(cat){
+  if(cat === DEFAULT_CAT){ toast('不能删除默认分类'); return; }
+  if(!confirm(`确定删除分类「${cat}」？该分类下的笔记将移至「未分类」。`)) return;
+  // 将该分类下的笔记移到默认分类
+  dbGetAll().then(all => {
+    const tasks = all.filter(n=>n.category===cat).map(n=>{ n.category=DEFAULT_CAT; return dbPut(n); });
+    return Promise.all(tasks);
+  }).then(()=>{
+    const cats = getCats().filter(c=>c!==cat); saveCats(cats);
+    selectedCat = DEFAULT_CAT;
+    toast(`已删除分类「${cat}」`);
+    // 重新打开管理弹窗
+    document.querySelector('.modal-overlay')?.remove();
+    showCatManager();
+    renderCatSelector();
+  });
+}
+
+function escapeAttr(s){ return s.replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 // ── 复习状态 ──
 let reviewQueue = [];
 let reviewIndex = -1;
+let reviewCatFilter = null; // null=全部, string=指定分类
 
 async function renderReviewDashboard(){
-  const due = await getDueNotes();
   const all = await dbGetAll();
+  const allDue = await getDueNotes(null); // 全部待复习数量
   const mastered = all.filter(n=>n.stage >= INTERVALS.length).length;
   const badge = document.getElementById('due-badge');
-  badge.textContent = due.length > 0 ? due.length : '';
+  badge.textContent = allDue.length > 0 ? allDue.length : '';
 
   const dash = document.getElementById('review-dashboard');
   const active = document.getElementById('review-active');
@@ -334,39 +450,65 @@ async function renderReviewDashboard(){
     dash.innerHTML = `<div class="review-empty"><div class="emoji">📭</div><p>还没有笔记</p><p style="font-size:13px">先去「导入」添加笔记吧</p></div>`;
     return;
   }
-  if(due.length === 0){
+
+  // 分类过滤器
+  const cats = getCats();
+  const catDue = {};
+  cats.forEach(c => { catDue[c] = allDue.filter(n => n.category === c).length; });
+
+  const filterHtml = cats.map(c => {
+    const sel = reviewCatFilter === c ? ' selected' : '';
+    return `<span class="filter-chip${sel}" onclick="setReviewCat('${escapeAttr(c)}')">${escapeHtml(c)} (${catDue[c]||0})</span>`;
+  }).join('');
+  const allSel = reviewCatFilter === null ? ' selected' : '';
+
+  const dueFiltered = reviewCatFilter ? allDue.filter(n=>n.category===reviewCatFilter) : allDue;
+
+  if(dueFiltered.length === 0){
     dash.innerHTML = `
-      <div class="review-empty"><div class="emoji">🎉</div><p>太棒了，全部复习完毕！</p><p style="font-size:13px">${mastered>0?mastered+' 条已掌握':'下一轮复习时间还没到'}</p></div>
+      <div class="filter-row"><span class="filter-chip${allSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${filterHtml}</div>
+      <div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter ? '该分类暂无待复习笔记' : '太棒了，全部复习完毕！'}</p><p style="font-size:13px">${mastered>0?mastered+' 条已掌握':'下一轮复习时间还没到'}</p></div>
       <div class="stat-row">
         <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
         <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
-        <div class="stat-box warn"><div class="stat-val">${all.length - mastered}</div><div class="stat-label">学习中</div></div>
+        <div class="stat-box warn"><div class="stat-val">${allDue.length}</div><div class="stat-label">全部待复习</div></div>
       </div>`;
     return;
   }
+
   dash.innerHTML = `
+    <div class="filter-row"><span class="filter-chip${allSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${filterHtml}</div>
     <div class="card" style="text-align:center">
       <div style="font-size:48px;margin-bottom:8px">🧠</div>
-      <div style="font-size:36px;font-weight:800;color:#4A6CF7">${due.length}</div>
-      <div style="font-size:14px;color:#64748B;margin-bottom:16px">条笔记等待复习</div>
+      <div style="font-size:36px;font-weight:800;color:#4A6CF7">${dueFiltered.length}</div>
+      <div style="font-size:14px;color:#64748B;margin-bottom:16px">${reviewCatFilter ? '「'+reviewCatFilter+'」' : ''}待复习 · 乱序出题</div>
       <button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button>
     </div>
     <div class="stat-row">
       <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
       <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
-      <div class="stat-box warn"><div class="stat-val">${all.length - mastered}</div><div class="stat-label">学习中</div></div>
+      <div class="stat-box warn"><div class="stat-val">${allDue.length}</div><div class="stat-label">全部待复习</div></div>
     </div>`;
 }
 
-async function getDueNotes(){
+function setReviewCat(cat){
+  reviewCatFilter = cat;
+  document.getElementById('review-sub').textContent = cat ? `正在学习：${cat}` : '艾宾浩斯间隔复习';
+  renderReviewDashboard();
+}
+
+async function getDueNotes(cat){
   const all = await dbGetAll();
   const n = now();
-  return all.filter(x => x.nextReview !== null && x.nextReview <= n).sort((a,b)=>a.nextReview-b.nextReview);
+  let due = all.filter(x => x.nextReview !== null && x.nextReview <= n);
+  if(cat) due = due.filter(x => x.category === cat);
+  return due;
 }
 
 // ── 开始复习 ──
 async function startReview(){
-  reviewQueue = await getDueNotes();
+  reviewQueue = await getDueNotes(reviewCatFilter);
+  reviewQueue = shuffle(reviewQueue); // ★ 乱序
   reviewIndex = 0;
   if(reviewQueue.length === 0){ renderReviewDashboard(); return; }
   document.getElementById('review-dashboard').style.display='none';
@@ -376,16 +518,16 @@ async function startReview(){
 }
 
 function showCard(){
-  if(reviewIndex >= reviewQueue.length){
-    finishReview();
-    return;
-  }
+  if(reviewIndex >= reviewQueue.length){ finishReview(); return; }
   const note = reviewQueue[reviewIndex];
   const container = document.getElementById('review-active');
   container.innerHTML = `
     <div class="review-card-wrapper">
       <div class="review-card" id="review-card">
-        <div class="review-stage">${stageLabel(note.stage)} · 第${note.reviewCount+1}次复习</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center">
+          <span class="review-stage">${stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>
+          ${note.category && note.category !== DEFAULT_CAT ? `<span class="review-cat">📂 ${escapeHtml(note.category)}</span>` : ''}
+        </div>
         <div class="review-hint">🤔 请在脑中回忆以下内容</div>
         <button class="btn btn-outline" id="reveal-btn" style="width:auto;margin:8px 0">👁 显示内容</button>
         <div class="review-content" id="reveal-content" style="display:none">${escapeHtml(note.content)}</div>
@@ -416,21 +558,15 @@ async function rateCard(rating){
   note.lastRating = rating;
   await dbPut(note);
 
-  // 动画
   const card = document.getElementById('review-card');
-  const dir = rating === 'forgot' ? 'swipe-left' : rating === 'vague' ? 'swipe-out' : 'swipe-out';
-  card.classList.add(dir);
-
-  const clr = rating==='forgot'?'#EF4444':rating==='vague'?'#F59E0B':'#10B981';
+  card.classList.add(rating === 'forgot' ? 'swipe-left' : 'swipe-out');
   const txt = rating==='forgot'?'标记：忘了':rating==='vague'?'标记：模糊':'标记：记住了';
   toast(txt);
 
-  await sleep(280);
+  await new Promise(r=>setTimeout(r,280));
   reviewIndex++;
   showCard();
 }
-
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 function finishReview(){
   document.getElementById('review-active').style.display='none';
@@ -441,18 +577,10 @@ function finishReview(){
       <div class="emoji">✅</div>
       <div class="title">本轮复习完成</div>
       <div class="detail">共复习 ${reviewQueue.length} 条笔记</div>
-      ${renderSummaryStats()}
     </div>`;
   reviewQueue=[]; reviewIndex=-1;
-  setTimeout(renderReviewDashboard,100);
+  setTimeout(renderReviewDashboard, 100);
 }
-
-function renderSummaryStats(){
-  return ''; // 简单版不拆了
-}
-
-// ── HTML 转义 ──
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── 导入 ──
 document.getElementById('import-btn').addEventListener('click', doImport);
@@ -478,17 +606,15 @@ async function doImport(){
   if(items.length === 0){ toast('未识别到有效笔记'); return; }
 
   const over = items.filter(c=>c.length>50);
-  if(over.length > 0){
-    toast(`有 ${over.length} 条超过50字，请精简后重试`);
-    return;
-  }
+  if(over.length > 0){ toast(`有 ${over.length} 条超过50字，请精简后重试`); return; }
 
   let count = 0;
   for(const content of items){
     await dbPut({
       content,
+      category: selectedCat,
       stage: 0,
-      nextReview: now(), // 立即可复习
+      nextReview: now(),
       createdAt: now(),
       reviewCount: 0,
       lastRating: null
@@ -497,32 +623,53 @@ async function doImport(){
   }
   document.getElementById('import-ta').value = '';
   document.getElementById('import-preview').innerHTML = '';
-  toast(`✅ 成功导入 ${count} 条笔记`);
+  toast(`✅ 已导入 ${count} 条到「${selectedCat}」`);
   renderNoteList();
   renderReviewDashboard();
   updateBadge();
 }
 
 // ── 笔记列表 ──
+let noteFilterCat = null;
 async function renderNoteList(){
   const all = await dbGetAll();
+  const cats = getCats();
+
+  // 过滤栏
+  const catCounts = {};
+  cats.forEach(c => { catCounts[c] = all.filter(n=>n.category===c).length; });
+  const allSel = noteFilterCat === null ? ' selected' : '';
+  const filterHtml = cats.map(c => {
+    const sel = noteFilterCat === c ? ' selected' : '';
+    return `<span class="filter-chip${sel}" onclick="setNoteFilter('${escapeAttr(c)}')">${escapeHtml(c)} (${catCounts[c]||0})</span>`;
+  }).join('');
+  document.getElementById('note-filter').innerHTML = `<span class="filter-chip${allSel}" onclick="setNoteFilter(null)">全部 (${all.length})</span>${filterHtml}`;
+
   const list = document.getElementById('note-list');
-  if(all.length === 0){ list.innerHTML = '<p style="color:#94A3B8;font-size:14px;text-align:center;padding:20px">暂无笔记</p>'; return; }
-  list.innerHTML = all.sort((a,b)=>b.createdAt-a.createdAt).slice(0,50).map(n=>`
+  let filtered = all;
+  if(noteFilterCat) filtered = all.filter(n=>n.category===noteFilterCat);
+
+  if(filtered.length === 0){
+    list.innerHTML = '<p style="color:#94A3B8;font-size:14px;text-align:center;padding:20px">暂无笔记</p>'; return;
+  }
+  list.innerHTML = filtered.sort((a,b)=>b.createdAt-a.createdAt).slice(0,50).map(n=>`
     <div class="note-list-item">
-      <div class="n-content">${escapeHtml(n.content.slice(0,40))}${n.content.length>40?'…':''}</div>
-      <div class="n-meta">${stageLabel(n.stage)}</div>
+      <span class="n-cat">${escapeHtml(n.category||DEFAULT_CAT)}</span>
+      <span class="n-content" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(n.content.slice(0,30))}${n.content.length>30?'…':''}</span>
+      <span class="n-meta">${stageLabel(n.stage)}</span>
     </div>`).join('');
 }
+
+function setNoteFilter(cat){ noteFilterCat = cat; renderNoteList(); }
 
 // ── 清空 ──
 document.getElementById('clear-btn').addEventListener('click', async ()=>{
   const all = await dbGetAll();
   if(all.length === 0){ toast('没有可清空的笔记'); return; }
-  // 简单确认
   if(confirm(`确定要删除全部 ${all.length} 条笔记吗？此操作不可撤销。`)){
     await dbClear();
     toast('已清空全部笔记');
+    noteFilterCat = null;
     renderNoteList();
     renderReviewDashboard();
     updateBadge();
@@ -533,7 +680,7 @@ document.getElementById('clear-btn').addEventListener('click', async ()=>{
 async function renderStats(){
   const all = await dbGetAll();
   const mastered = all.filter(n=>n.stage >= INTERVALS.length).length;
-  const due = (await getDueNotes()).length;
+  const allDue = await getDueNotes(null);
   const totalReviews = all.reduce((s,n)=>s+(n.reviewCount||0),0);
 
   // 各阶段分布
@@ -551,12 +698,28 @@ async function renderStats(){
       </span>
     </div>`).join('');
 
+  // 各分类统计
+  const cats = getCats();
+  const catStatsHtml = cats.map(c=>{
+    const count = all.filter(n=>n.category===c).length;
+    const dueC = allDue.filter(n=>n.category===c).length;
+    const masteredC = all.filter(n=>n.category===c && n.stage>=INTERVALS.length).length;
+    return count > 0 ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9">
+        <span style="font-size:14px;font-weight:500">📂 ${escapeHtml(c)}</span>
+        <div style="display:flex;gap:12px;font-size:13px;color:#64748B">
+          <span>总 ${count}</span><span style="color:#F59E0B">待 ${dueC}</span><span style="color:#10B981">✓ ${masteredC}</span>
+        </div>
+      </div>` : '';
+  }).filter(Boolean).join('');
+
   document.getElementById('stats-content').innerHTML = `
     <div class="stat-row">
       <div class="stat-box"><div class="stat-val">${all.length}</div><div class="stat-label">总笔记</div></div>
       <div class="stat-box success"><div class="stat-val">${mastered}</div><div class="stat-label">已掌握</div></div>
-      <div class="stat-box warn"><div class="stat-val">${due}</div><div class="stat-label">待复习</div></div>
+      <div class="stat-box warn"><div class="stat-val">${allDue.length}</div><div class="stat-label">待复习</div></div>
     </div>
+    ${catStatsHtml ? `<div class="card"><div class="card-title">📂 分类概览</div>${catStatsHtml}</div>` : ''}
     <div class="card">
       <div class="card-title">📈 学习进度</div>
       ${stagesHtml}
@@ -571,17 +734,24 @@ async function renderStats(){
 }
 
 async function updateBadge(){
-  const due = await getDueNotes();
+  const due = await getDueNotes(null);
   document.getElementById('due-badge').textContent = due.length > 0 ? due.length : '';
 }
 
 // ── Bootstrap ──
 (async function init(){
   await openDB();
+  // v1→v2 迁移：给旧笔记补 category
+  const all = await dbGetAll();
+  const needsMigration = all.some(n => !n.category);
+  if(needsMigration){
+    const tasks = all.filter(n=>!n.category).map(n=>{ n.category=DEFAULT_CAT; return dbPut(n); });
+    await Promise.all(tasks);
+  }
+  renderCatSelector();
   await renderReviewDashboard();
   await updateBadge();
 
-  // Service Worker
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
