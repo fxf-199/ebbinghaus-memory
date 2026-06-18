@@ -557,7 +557,7 @@ async function renderStats(){
   const sc={};for(let i=0;i<=INTERVALS.length;i++)sc[i]=0;
   all.forEach(n=>{sc[Math.min(n.stage,INTERVALS.length)]++;});
   const sn=['新学(1天)','第1次(2天)','第2次(4天)','第3次(7天)','第4次(15天)','第5次(30天)','第6次(60天)','已掌握'];
-  const sh=sn.map((n,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:var(--sub)">${n}</span><span style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#334155">${sc[i]||0} 条</span><span style="display:inline-block;width:${Math.max((sc[i]||0)/Math.max(all.length,1)*120,2)}px;height:6px;background:${i>=INTERVALS.length?var(--ok):var(--pri)};border-radius:3px;opacity:${0.3+(i/INTERVALS.length)*0.7}"></span></span></div>`).join('');
+  const sh=sn.map((n,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:var(--sub)">${n}</span><span style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#334155">${sc[i]||0} 条</span><span style="display:inline-block;width:${Math.max((sc[i]||0)/Math.max(all.length,1)*120,2)}px;height:6px;background:${i>=INTERVALS.length?'var(--ok)':'var(--pri)'};border-radius:3px;opacity:${0.3+(i/INTERVALS.length)*0.7}"></span></span></div>`).join('');
 
   const cats=getCats(),csHtml=cats.map(c=>{const cnt=all.filter(n=>n.category===c).length,dc=allDue.filter(n=>n.category===c).length,mc=all.filter(n=>n.category===c&&n.stage>=INTERVALS.length).length;return cnt>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:14px;font-weight:500">📂 ${eHtml(c)}</span><div style="display:flex;gap:12px;font-size:13px;color:var(--sub)"><span>总 ${cnt}</span><span style="color:var(--warn)">待 ${dc}</span><span style="color:var(--ok)">✓ ${mc}</span></div></div>`:'';}).filter(Boolean).join('');
 
@@ -582,11 +582,11 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
   await openDB();
   // 迁移：补 category + reviewLog
   const all=await dbGetAll();
-  let migrated=false;
   for(const n of all){
-    if(!n.category){n.category=DEFAULT_CAT;migrated=true;}
-    if(!n.reviewLog){n.reviewLog=[];migrated=true;}
-    if(migrated)await dbPut(n);
+    let m=false;
+    if(!n.category){n.category=DEFAULT_CAT;m=true;}
+    if(!n.reviewLog){n.reviewLog=[];m=true;}
+    if(m)await dbPut(n);
   }
   renderCatSelector();await renderReviewDashboard();await updateBadge();
   if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
