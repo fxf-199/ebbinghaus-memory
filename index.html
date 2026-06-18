@@ -383,10 +383,19 @@ function showCatMgr(){
   };
   o.addEventListener('click',e=>{if(e.target===o)o.remove();});
 }
-function delCat(cat){
+async function delCat(cat){
   if(cat===DEFAULT_CAT){toast('不能删除默认分类');return;}
   if(!confirm(`确定删除「${cat}」？笔记将归入「未分类」。`))return;
-  dbGetAll().then(all=>Promise.all(all.filter(n=>n.category===cat).map(n=>{n.category=DEFAULT_CAT;return dbPut(n);}))).then(()=>{const cs=getCats().filter(x=>x!==cat);saveCats(cs);selectedCat=DEFAULT_CAT;document.querySelector('.modal-overlay')?.remove();showCatMgr();renderCatSelector();});
+  try{
+    const all=await dbGetAll();
+    const tasks=all.filter(n=>n.category===cat).map(n=>{n.category=DEFAULT_CAT;return dbPut(n);});
+    await Promise.all(tasks);
+    const cs=getCats().filter(x=>x!==cat);saveCats(cs);
+    selectedCat=DEFAULT_CAT;
+    document.querySelector('.modal-overlay')?.remove();
+    showCatMgr();renderCatSelector();
+    toast('已删除分类「'+cat+'」');
+  }catch(e){toast('删除失败，请重试');}
 }
 
 // ── 复习 ──
