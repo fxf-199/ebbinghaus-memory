@@ -328,7 +328,7 @@ function saveCats(c){ localStorage.setItem(CAT_KEY,JSON.stringify(c)); }
 
 // ── Ebbinghaus ──
 const INTERVALS = [1,2,4,7,15,30,60];
-const DAILY_LIMIT = 30;
+const DAILY_LIMIT = 30; // 默认上限
 // 每日新学配额（localStorage，按分类独立）
 const Q_KEY = 'ebbinghaus-quota';
 function getQuota(){try{const v=localStorage.getItem(Q_KEY);return v?JSON.parse(v):{};}catch(e){return{};}}
@@ -336,8 +336,19 @@ function saveQuota(q){localStorage.setItem(Q_KEY,JSON.stringify(q));}
 function dailyQuotaKey(cat){return todayStr()+'_'+cat;}
 function getDailyNewUsed(cat){const q=getQuota();return q[dailyQuotaKey(cat)]||0;}
 function addDailyNewUsed(cat,n){const q=getQuota(),k=dailyQuotaKey(cat);q[k]=(q[k]||0)+n;saveQuota(q);}
-// 模糊连续计数（note 上临时存）
-const VAGUE_KEY = '_consecVague';
+// 每分类自定义上限
+const L_KEY = 'ebbinghaus-limits';
+function getLimits(){try{const v=localStorage.getItem(L_KEY);return v?JSON.parse(v):{};}catch(e){return{};}}
+function saveLimits(l){localStorage.setItem(L_KEY,JSON.stringify(l));}
+function getCatLimit(cat){const l=getLimits();return l[cat]||DAILY_LIMIT;}
+function setCatLimit(cat,n){const l=getLimits();l[cat]=n;saveLimits(l);}
+// 复习断点续传
+const S_KEY = 'ebbinghaus-session';
+function saveSession(ids,idx,cat){localStorage.setItem(S_KEY,JSON.stringify({ids,idx,cat,time:now()}));}
+function loadSession(){try{const v=localStorage.getItem(S_KEY);return v?JSON.parse(v):null;}catch(e){return null;}}
+function clearSession(){localStorage.removeItem(S_KEY);}
+// 撤销快照
+let undoSrc=null;
 function calcNextReview(stage,rating){
   if(rating==='forgot') return{stage:0,nextReview:addDays(now(),INTERVALS[0])};
   if(rating==='vague'){const s=Math.max(stage-1,0);return{stage:s,nextReview:addDays(now(),INTERVALS[s])};}
@@ -383,10 +394,11 @@ function selectCat(c){selectedCat=c;renderCatSelector();}
 document.getElementById('manage-cat-btn').addEventListener('click',showCatMgr);
 function showCatMgr(){
   const c=getCats();const o=document.createElement('div');o.className='modal-overlay';
-  o.innerHTML=`<div class="modal-box"><h3>📂 管理分类</h3><div style="margin-bottom:12px" id="cat-list-modal">${c.map((x,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px">${eHtml(x)}</span>${x===DEFAULT_CAT?'<span style="font-size:11px;color:var(--muted)">默认</span>':`<button class="btn btn-xs btn-danger cat-del-btn" data-cat="${eAttr(x)}" style="width:auto">删除</button>`}</div>`).join('')}</div><div style="display:flex;gap:8px"><input class="modal-input" id="new-cat-input" placeholder="新分类名" maxlength="10"><button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button></div><div class="modal-actions"><button class="btn btn-sm btn-outline" id="close-cm">关闭</button></div></div>`;
+  o.innerHTML=`<div class="modal-box"><h3>📂 管理分类</h3><div style="margin-bottom:12px" id="cat-list-modal">${c.map((x,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px">${eHtml(x)}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--muted)">日上限</span><input type="number" class="cat-limit-inp" data-cat="${eAttr(x)}" value="${getCatLimit(x)}" min="1" max="999" style="width:48px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center">${x===DEFAULT_CAT?'<span style="font-size:11px;color:var(--muted)">默认</span>':`<button class="btn btn-xs btn-danger cat-del-btn" data-cat="${eAttr(x)}" style="width:auto">删除</button>`}</div></div>`).join('')}</div><div style="display:flex;gap:8px"><input class="modal-input" id="new-cat-input" placeholder="新分类名" maxlength="10"><button class="btn btn-sm btn-primary" id="add-cat-btn" style="width:auto">添加</button></div><div class="modal-actions"><button class="btn btn-sm btn-outline" id="close-cm">关闭</button></div></div>`;
   document.body.appendChild(o);
   // 事件委托：删除分类按钮
   o.querySelectorAll('.cat-del-btn').forEach(btn=>{btn.onclick=()=>delCat(btn.dataset.cat);});
+  o.querySelectorAll('.cat-limit-inp').forEach(inp=>{inp.onchange=()=>{const v=parseInt(inp.value)||DAILY_LIMIT;setCatLimit(inp.dataset.cat,Math.max(1,Math.min(999,v)));toast('上限已更新');};});
   o.querySelector('#close-cm').onclick=()=>{o.remove();renderCatSelector();renderReviewDashboard();renderNoteList();};
   o.querySelector('#add-cat-btn').onclick=()=>{
     const v=o.querySelector('#new-cat-input').value.trim();
@@ -422,6 +434,9 @@ async function renderReviewDashboard(){
 
   if(all.length===0){dash.innerHTML=`<div class="review-empty"><div class="emoji">📭</div><p>还没有笔记</p><p style="font-size:13px">先去「导入」添加笔记吧</p></div>`;return;}
 
+  // 检查断点续传
+  const session=loadSession();const canResume=session&&session.ids&&session.ids.length>0;
+
   const cats=getCats(),catDue={};
   cats.forEach(c=>{catDue[c]=allDue.filter(n=>n.category===c).length;});
   const fHtml=cats.map(c=>{const s=reviewCatFilter===c?' selected':'';return`<span class="filter-chip${s}" onclick="setReviewCat('${eAttr(c)}')">${eHtml(c)} (${catDue[c]||0})</span>`;}).join('');
@@ -429,44 +444,50 @@ async function renderReviewDashboard(){
   const revCards=dueF.filter(n=>!(n.stage===0&&(n.reviewCount||0)===0));
   const newCards=dueF.filter(n=>n.stage===0&&(n.reviewCount||0)===0);
   let newAvail=0;
-  if(reviewCatFilter){const u=getDailyNewUsed(reviewCatFilter);newAvail=Math.min(newCards.length,Math.max(0,DAILY_LIMIT-u));}
-  else{const cats=[...new Set(newCards.map(n=>n.category))];cats.forEach(c=>{const u=getDailyNewUsed(c);newAvail+=Math.min(newCards.filter(n=>n.category===c).length,Math.max(0,DAILY_LIMIT-u));});}
+  if(reviewCatFilter){const u=getDailyNewUsed(reviewCatFilter);const lim=getCatLimit(reviewCatFilter);newAvail=Math.min(newCards.length,Math.max(0,lim-u));}
+  else{const cats=[...new Set(newCards.map(n=>n.category))];cats.forEach(c=>{const u=getDailyNewUsed(c);const lim=getCatLimit(c);newAvail+=Math.min(newCards.filter(n=>n.category===c).length,Math.max(0,lim-u));});}
   const totalReady=revCards.length+newAvail;
 
   if(totalReady===0){
-    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p><p style="font-size:12px;color:var(--muted)">复习卡 ${revCards.length} · 新卡配额已用完 (${newCards.length} 等待明天)</p></div>`;
+    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p><p style="font-size:12px;color:var(--muted)">复习卡 ${revCards.length} · 新卡配额已用完 (${newCards.length} 等待明天)</p>${canResume?`<button class="btn btn-outline btn-sm" style="margin-top:12px;width:auto" onclick="startReview(${JSON.stringify(session.ids)},${session.idx})">⏯ 继续上次复习 (${session.ids.length} 条)</button>`:''}</div>`;
     return;
   }
-  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${totalReady}</div><div style="font-size:13px;color:var(--sub);margin-bottom:6px">${reviewCatFilter?'「'+reviewCatFilter+'」':''}复习 ${revCards.length} + 新学 ${newAvail}/${DAILY_LIMIT}</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button></div>`;
+  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${totalReady}</div><div style="font-size:13px;color:var(--sub);margin-bottom:6px">${reviewCatFilter?'「'+reviewCatFilter+'」':''}复习 ${revCards.length} + 新学 ${newAvail}/${reviewCatFilter?getCatLimit(reviewCatFilter):'—'}</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button>${canResume?`<button class="btn btn-outline btn-sm" style="margin-top:8px;width:auto" onclick="startReview(${JSON.stringify(session.ids)},${session.idx})">⏯ 继续上次复习 (${session.ids.length} 条)</button>`:''}</div>`;
 }
 function setReviewCat(c){reviewCatFilter=c;document.getElementById('review-sub').textContent=c?`正在学习：${c}`:'艾宾浩斯间隔复习';renderReviewDashboard();}
 async function getDueNotes(cat){const all=await dbGetAll();const n=now();let d=all.filter(x=>x.nextReview!==null&&x.nextReview<=n);if(cat)d=d.filter(x=>x.category===cat);return d;}
 
-async function startReview(){
-  const allDue=await getDueNotes(reviewCatFilter);
-  // 拆分：复习卡（不限量） vs 新卡（≤30/分类）
-  const reviewCards=[],newCards=[];
-  allDue.forEach(n=>{if(n.stage===0&&(n.reviewCount||0)===0)newCards.push(n);else reviewCards.push(n);});
-  // 新卡按分类限制
-  const selectedNew=[];
-  if(newCards.length){
-    const cats=[...new Set(newCards.map(n=>n.category))];
-    cats.forEach(c=>{
-      const catNew=newCards.filter(n=>n.category===c);
-      const used=getDailyNewUsed(c);
-      const remain=Math.max(0,DAILY_LIMIT-used);
-      const pick=catNew.slice(0,remain);
-      selectedNew.push(...pick);
-      if(pick.length)addDailyNewUsed(c,pick.length);
-    });
+async function startReview(restoreIds,restoreIdx){
+  let allDue;
+  if(restoreIds){
+    // 从断点恢复
+    const all=await dbGetAll();allDue=restoreIds.map(id=>all.find(n=>n.id===id)).filter(Boolean);
+    reviewQueue=allDue;reviewIndex=restoreIdx||0;
+  }else{
+    allDue=await getDueNotes(reviewCatFilter);
+    const reviewCards=[],newCards=[];
+    allDue.forEach(n=>{if(n.stage===0&&(n.reviewCount||0)===0)newCards.push(n);else reviewCards.push(n);});
+    const selectedNew=[];
+    if(newCards.length){
+      const cats=[...new Set(newCards.map(n=>n.category))];
+      cats.forEach(c=>{
+        const catNew=newCards.filter(n=>n.category===c);
+        const used=getDailyNewUsed(c);
+        const remain=Math.max(0,getCatLimit(c)-used);
+        const pick=catNew.slice(0,remain);
+        selectedNew.push(...pick);
+        if(pick.length)addDailyNewUsed(c,pick.length);
+      });
+    }
+    reviewQueue=shuffle(reviewCards).concat(shuffle(selectedNew));
+    reviewIndex=0;
   }
-  reviewQueue=shuffle(reviewCards).concat(shuffle(selectedNew));
-  reviewIndex=0;
   if(!reviewQueue.length){renderReviewDashboard();return;}
   document.getElementById('review-dashboard').style.display='none';
   document.getElementById('review-active').style.display='block';
   document.getElementById('review-done').style.display='none';
   showCard();
+  saveSession(reviewQueue.map(n=>n.id),reviewIndex,reviewCatFilter);
 }
 
 function showCard(){
@@ -493,6 +514,8 @@ function showCard(){
 
 async function rateCard(rating){
   const note=reviewQueue[reviewIndex];
+  // 保存撤销快照
+  undoSrc={id:note.id,stage:note.stage,nextReview:note.nextReview,reviewCount:note.reviewCount,lastRating:note.lastRating,reviewLog:note.reviewLog?[...note.reviewLog]:[],index:reviewIndex};
   // 模糊连续两次 → 自动晋升
   let effectiveRating=rating;
   if(rating==='vague'){
@@ -512,6 +535,16 @@ async function rateCard(rating){
   toast('标记：'+txt);
   await new Promise(r=>setTimeout(r,280));
   reviewIndex++;showCard();
+  saveSession(reviewQueue.map(n=>n.id),reviewIndex,reviewCatFilter);
+}
+async function undoLastRating(){
+  if(!undoSrc)return;
+  const note=await dbGet(undoSrc.id);if(!note)return;
+  note.stage=undoSrc.stage;note.nextReview=undoSrc.nextReview;note.reviewCount=undoSrc.reviewCount;note.lastRating=undoSrc.lastRating;note.reviewLog=undoSrc.reviewLog;
+  await dbPut(note);
+  reviewQueue.splice(reviewIndex,0,note);reviewIndex=undoSrc.index;
+  undoSrc=null;toast('已撤销');
+  showCard();
 }
 async function delReviewNote(){
   const note=reviewQueue[reviewIndex];
@@ -523,7 +556,7 @@ async function delReviewNote(){
   if(reviewIndex>=reviewQueue.length){finishReview();return;}
   showCard();
 }
-function finishReview(){document.getElementById('review-active').style.display='none';const d=document.getElementById('review-dashboard');d.style.display='block';d.innerHTML=`<div class="review-summary"><div class="emoji">✅</div><div class="title">本轮复习完成</div><div class="detail">共复习 ${reviewQueue.length} 条</div></div>`;reviewQueue=[];reviewIndex=-1;setTimeout(renderReviewDashboard,100);}
+function finishReview(){document.getElementById('review-active').style.display='none';const d=document.getElementById('review-dashboard');d.style.display='block';d.innerHTML=`<div class="review-summary"><div class="emoji">✅</div><div class="title">本轮复习完成</div><div class="detail">共复习 ${reviewQueue.length} 条</div></div>`;reviewQueue=[];reviewIndex=-1;clearSession();setTimeout(renderReviewDashboard,100);}
 
 // ── 导入 ──
 document.getElementById('import-btn').addEventListener('click',doImport);
