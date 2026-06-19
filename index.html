@@ -680,7 +680,7 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
     if(m)await dbPut(n);
   }
   renderCatSelector();await renderReviewDashboard();await updateBadge();
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js?v=3').catch(()=>{});}
 })();
 </script>
 </body>
