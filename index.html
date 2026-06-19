@@ -328,6 +328,16 @@ function saveCats(c){ localStorage.setItem(CAT_KEY,JSON.stringify(c)); }
 
 // ── Ebbinghaus ──
 const INTERVALS = [1,2,4,7,15,30,60];
+const DAILY_LIMIT = 30;
+// 每日新学配额（localStorage，按分类独立）
+const Q_KEY = 'ebbinghaus-quota';
+function getQuota(){try{const v=localStorage.getItem(Q_KEY);return v?JSON.parse(v):{};}catch(e){return{};}}
+function saveQuota(q){localStorage.setItem(Q_KEY,JSON.stringify(q));}
+function dailyQuotaKey(cat){return todayStr()+'_'+cat;}
+function getDailyNewUsed(cat){const q=getQuota();return q[dailyQuotaKey(cat)]||0;}
+function addDailyNewUsed(cat,n){const q=getQuota(),k=dailyQuotaKey(cat);q[k]=(q[k]||0)+n;saveQuota(q);}
+// 模糊连续计数（note 上临时存）
+const VAGUE_KEY = '_consecVague';
 function calcNextReview(stage,rating){
   if(rating==='forgot') return{stage:0,nextReview:addDays(now(),INTERVALS[0])};
   if(rating==='vague'){const s=Math.max(stage-1,0);return{stage:s,nextReview:addDays(now(),INTERVALS[s])};}
@@ -416,18 +426,42 @@ async function renderReviewDashboard(){
   cats.forEach(c=>{catDue[c]=allDue.filter(n=>n.category===c).length;});
   const fHtml=cats.map(c=>{const s=reviewCatFilter===c?' selected':'';return`<span class="filter-chip${s}" onclick="setReviewCat('${eAttr(c)}')">${eHtml(c)} (${catDue[c]||0})</span>`;}).join('');
   const aSel=reviewCatFilter===null?' selected':'',dueF=reviewCatFilter?allDue.filter(n=>n.category===reviewCatFilter):allDue;
+  const revCards=dueF.filter(n=>!(n.stage===0&&(n.reviewCount||0)===0));
+  const newCards=dueF.filter(n=>n.stage===0&&(n.reviewCount||0)===0);
+  let newAvail=0;
+  if(reviewCatFilter){const u=getDailyNewUsed(reviewCatFilter);newAvail=Math.min(newCards.length,Math.max(0,DAILY_LIMIT-u));}
+  else{const cats=[...new Set(newCards.map(n=>n.category))];cats.forEach(c=>{const u=getDailyNewUsed(c);newAvail+=Math.min(newCards.filter(n=>n.category===c).length,Math.max(0,DAILY_LIMIT-u));});}
+  const totalReady=revCards.length+newAvail;
 
-  if(dueF.length===0){
-    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p></div>`;
+  if(totalReady===0){
+    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p><p style="font-size:12px;color:var(--muted)">复习卡 ${revCards.length} · 新卡配额已用完 (${newCards.length} 等待明天)</p></div>`;
     return;
   }
-  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${dueF.length}</div><div style="font-size:14px;color:var(--sub);margin-bottom:16px">${reviewCatFilter?'「'+reviewCatFilter+'」':''}待复习 · 乱序出题</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button></div>`;
+  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${totalReady}</div><div style="font-size:13px;color:var(--sub);margin-bottom:6px">${reviewCatFilter?'「'+reviewCatFilter+'」':''}复习 ${revCards.length} + 新学 ${newAvail}/${DAILY_LIMIT}</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button></div>`;
 }
 function setReviewCat(c){reviewCatFilter=c;document.getElementById('review-sub').textContent=c?`正在学习：${c}`:'艾宾浩斯间隔复习';renderReviewDashboard();}
 async function getDueNotes(cat){const all=await dbGetAll();const n=now();let d=all.filter(x=>x.nextReview!==null&&x.nextReview<=n);if(cat)d=d.filter(x=>x.category===cat);return d;}
 
 async function startReview(){
-  reviewQueue=await getDueNotes(reviewCatFilter);reviewQueue=shuffle(reviewQueue);reviewIndex=0;
+  const allDue=await getDueNotes(reviewCatFilter);
+  // 拆分：复习卡（不限量） vs 新卡（≤30/分类）
+  const reviewCards=[],newCards=[];
+  allDue.forEach(n=>{if(n.stage===0&&(n.reviewCount||0)===0)newCards.push(n);else reviewCards.push(n);});
+  // 新卡按分类限制
+  const selectedNew=[];
+  if(newCards.length){
+    const cats=[...new Set(newCards.map(n=>n.category))];
+    cats.forEach(c=>{
+      const catNew=newCards.filter(n=>n.category===c);
+      const used=getDailyNewUsed(c);
+      const remain=Math.max(0,DAILY_LIMIT-used);
+      const pick=catNew.slice(0,remain);
+      selectedNew.push(...pick);
+      if(pick.length)addDailyNewUsed(c,pick.length);
+    });
+  }
+  reviewQueue=shuffle(reviewCards).concat(shuffle(selectedNew));
+  reviewIndex=0;
   if(!reviewQueue.length){renderReviewDashboard();return;}
   document.getElementById('review-dashboard').style.display='none';
   document.getElementById('review-active').style.display='block';
@@ -459,16 +493,22 @@ function showCard(){
 
 async function rateCard(rating){
   const note=reviewQueue[reviewIndex];
-  const result=calcNextReview(note.stage,rating);
+  // 模糊连续两次 → 自动晋升
+  let effectiveRating=rating;
+  if(rating==='vague'){
+    const last=note.reviewLog&&note.reviewLog.length?note.reviewLog[0]:null;
+    if(last&&last.rating==='vague'){effectiveRating='remembered';}
+  }
+  const result=calcNextReview(note.stage,effectiveRating);
   note.stage=result.stage;note.nextReview=result.nextReview;
   note.reviewCount=(note.reviewCount||0)+1;note.lastRating=rating;
   if(!note.reviewLog)note.reviewLog=[];
-  note.reviewLog.unshift({date:todayStr(),rating});
+  note.reviewLog.unshift({date:todayStr(),rating:effectiveRating==='remembered'&&rating==='vague'?'auto-remembered':rating});
   await dbPut(note);
 
   const card=document.getElementById('review-card');
   card.classList.add(rating==='forgot'?'swipe-left':'swipe-out');
-  const txt=rating==='forgot'?'忘了':rating==='vague'?'模糊':'记住了';
+  const txt=rating==='forgot'?'忘了':(effectiveRating==='remembered'&&rating==='vague'?'模糊→自动晋升':rating==='vague'?'模糊':'记住了');
   toast('标记：'+txt);
   await new Promise(r=>setTimeout(r,280));
   reviewIndex++;showCard();
