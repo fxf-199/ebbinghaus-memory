@@ -532,7 +532,9 @@ async function rateCard(rating){
   const card=document.getElementById('review-card');
   card.classList.add(rating==='forgot'?'swipe-left':'swipe-out');
   const txt=rating==='forgot'?'忘了':(effectiveRating==='remembered'&&rating==='vague'?'模糊→自动晋升':rating==='vague'?'模糊':'记住了');
-  toast('标记：'+txt);
+  const nextDays=result.nextReview?Math.round((result.nextReview-now())/86400000):null;
+  const nextMsg=result.nextReview===null?'✅ 已掌握':`📅 下次：约${nextDays}天后`;
+  toast('标记：'+txt+'  '+nextMsg);
   await new Promise(r=>setTimeout(r,280));
   reviewIndex++;showCard();
   saveSession(reviewQueue.map(n=>n.id),reviewIndex,reviewCatFilter);
