@@ -609,12 +609,16 @@ function mergeBack(oldB,newB){
 }
 function longestCommon(a,b){let best='';for(let i=0;i<a.length;i++)for(let j=i+1;j<=a.length;j++){const s=a.slice(i,j);if(b.includes(s)&&s.length>best.length)best=s;}return best;}
 function noteKey(n){return(n.category||'')+'::'+(n.front||'')+'::'+(n.content||'').slice(0,30);}
-let noteFilterCat=null;
+let noteFilterCat=null;let noteFilterMastered=false;
 async function renderNoteList(){
   const all=await dbGetAll(),cats=getCats(),cc={};cats.forEach(c=>{cc[c]=all.filter(n=>n.category===c).length;});
-  const aSel=noteFilterCat===null?' selected':'',fHtml=cats.map(c=>{const s=noteFilterCat===c?' selected':'';return`<span class="filter-chip${s}" onclick="setNoteFilter('${eAttr(c)}')">${eHtml(c)} (${cc[c]||0})</span>`;}).join('');
-  document.getElementById('note-filter').innerHTML=`<span class="filter-chip${aSel}" onclick="setNoteFilter(null)">全部 (${all.length})</span>${fHtml}`;
-  let filtered=noteFilterCat?all.filter(n=>n.category===noteFilterCat):all;
+  const masteredCount=all.filter(n=>n.stage>=INTERVALS.length).length;
+  const aSel=noteFilterCat===null&&!noteFilterMastered?' selected':'',fHtml=cats.map(c=>{const s=noteFilterCat===c&&!noteFilterMastered?' selected':'';return`<span class="filter-chip${s}" onclick="setNoteF('${eAttr(c)}',false)">${eHtml(c)} (${cc[c]||0})</span>`;}).join('');
+  const mSel=noteFilterMastered?' selected':'';
+  document.getElementById('note-filter').innerHTML=`<span class="filter-chip${aSel}" onclick="setNoteF(null,false)">全部 (${all.length})</span>${fHtml}<span class="filter-chip${mSel}" onclick="setNoteF(null,true)" style="background:${noteFilterMastered?'#ECFDF5':''};border-color:${noteFilterMastered?'#10B981':''};color:${noteFilterMastered?'#10B981':''}">✅ 已掌握 (${masteredCount})</span>`;
+  let filtered=all;
+  if(noteFilterMastered){filtered=all.filter(n=>n.stage>=INTERVALS.length);}
+  else if(noteFilterCat){filtered=all.filter(n=>n.category===noteFilterCat);}
   // 搜索过滤
   const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
   if(q)filtered=filtered.filter(n=>(n.content||'').toLowerCase().includes(q)||(n.front||'').toLowerCase().includes(q)||(n.back||'').toLowerCase().includes(q));
@@ -622,7 +626,7 @@ async function renderNoteList(){
   if(!filtered.length){list.innerHTML='<p style="color:var(--muted);font-size:14px;text-align:center;padding:20px">暂无笔记</p>';return;}
   list.innerHTML=filtered.sort((a,b)=>b.createdAt-a.createdAt).slice(0,100).map(n=>`<div class="note-list-item"><span class="n-cat">${eHtml(n.category||DEFAULT_CAT)}</span><span class="n-content">${eHtml(n.front?n.front+(' · '+n.back).slice(0,20):(n.content||'').slice(0,40))}</span><span class="n-meta">${stageLabel(n.stage)}</span><span class="n-acts"><button title="编辑" onclick="editNote(${n.id})">✏️</button><button title="删除" onclick="delNote(${n.id})">🗑</button></span></div>`).join('');
 }
-function setNoteFilter(c){noteFilterCat=c;renderNoteList();}
+function setNoteF(c,m){noteFilterCat=c;noteFilterMastered=m;renderNoteList();}
 
 async function editNote(id){
   const note=await dbGet(id);if(!note)return;
