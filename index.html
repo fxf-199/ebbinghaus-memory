@@ -259,6 +259,7 @@ body{
       </div>
     </div>
     <div class="filter-row" id="note-filter"></div>
+    <input type="text" class="modal-input" id="search-input" placeholder="🔍 搜索笔记（正面/反面/内容）" style="margin-bottom:10px" oninput="renderNoteList()">
     <div id="note-list"></div>
     <button class="btn btn-danger btn-sm" id="clear-btn" style="margin-top:10px">🗑 清空全部笔记</button>
   </div>
@@ -539,6 +540,9 @@ async function renderNoteList(){
   const aSel=noteFilterCat===null?' selected':'',fHtml=cats.map(c=>{const s=noteFilterCat===c?' selected':'';return`<span class="filter-chip${s}" onclick="setNoteFilter('${eAttr(c)}')">${eHtml(c)} (${cc[c]||0})</span>`;}).join('');
   document.getElementById('note-filter').innerHTML=`<span class="filter-chip${aSel}" onclick="setNoteFilter(null)">全部 (${all.length})</span>${fHtml}`;
   let filtered=noteFilterCat?all.filter(n=>n.category===noteFilterCat):all;
+  // 搜索过滤
+  const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
+  if(q)filtered=filtered.filter(n=>(n.content||'').toLowerCase().includes(q)||(n.front||'').toLowerCase().includes(q)||(n.back||'').toLowerCase().includes(q));
   const list=document.getElementById('note-list');
   if(!filtered.length){list.innerHTML='<p style="color:var(--muted);font-size:14px;text-align:center;padding:20px">暂无笔记</p>';return;}
   list.innerHTML=filtered.sort((a,b)=>b.createdAt-a.createdAt).slice(0,100).map(n=>`<div class="note-list-item"><span class="n-cat">${eHtml(n.category||DEFAULT_CAT)}</span><span class="n-content">${eHtml(n.front?n.front+(' · '+n.back).slice(0,20):(n.content||'').slice(0,40))}</span><span class="n-meta">${stageLabel(n.stage)}</span><span class="n-acts"><button title="编辑" onclick="editNote(${n.id})">✏️</button><button title="删除" onclick="delNote(${n.id})">🗑</button></span></div>`).join('');
