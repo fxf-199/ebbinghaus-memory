@@ -261,7 +261,7 @@ body{
     <div class="filter-row" id="note-filter"></div>
     <input type="text" class="modal-input" id="search-input" placeholder="🔍 搜索笔记（正面/反面/内容）" style="margin-bottom:10px" oninput="renderNoteList()">
     <div id="note-list"></div>
-    <button class="btn btn-danger btn-sm" id="clear-btn" style="margin-top:10px">🗑 清空全部笔记</button>
+    <button class="btn btn-danger btn-sm" id="clear-btn" style="margin-top:10px">🗑 按分类清空</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none">
 </div></div>
@@ -622,8 +622,22 @@ document.getElementById('import-file').addEventListener('change',async e=>{
 // ── 清空 ──
 document.getElementById('clear-btn').addEventListener('click',async()=>{
   const all=await dbGetAll();if(!all.length){toast('无笔记');return;}
-  if(confirm(`确定删除全部 ${all.length} 条？`)){await dbClear();toast('已清空');noteFilterCat=null;renderNoteList();renderReviewDashboard();updateBadge();}
+  const cats=getCats(),counts={};
+  cats.forEach(c=>{counts[c]=all.filter(n=>n.category===c).length;});
+  const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box"><h3>🗑 按分类清空</h3><p>选择要清空的分类，该分类下所有笔记将被删除。</p>${cats.map(c=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="clearByCat('${eAttr(c)}',${counts[c]})"><span style="font-weight:500">📂 ${eHtml(c)}</span><span style="float:right;color:var(--sub)">${counts[c]} 条</span></div>`).join('')}<div class="modal-actions" style="margin-top:12px"><button class="btn btn-sm btn-outline" onclick="this.closest('.modal-overlay').remove()">取消</button></div></div>`;
+  document.body.appendChild(o);
+  o.addEventListener('click',e=>{if(e.target===o)o.remove();});
 });
+async function clearByCat(cat,count){
+  if(count===0){toast('该分类无笔记');document.querySelector('.modal-overlay')?.remove();return;}
+  if(!confirm(`确定删除「${cat}」下全部 ${count} 条笔记？`))return;
+  const all=await dbGetAll();
+  const tasks=all.filter(n=>n.category===cat).map(n=>dbDelete(n.id));
+  await Promise.all(tasks);
+  document.querySelector('.modal-overlay')?.remove();
+  toast('已清空「'+cat+'」');noteFilterCat=null;renderNoteList();renderReviewDashboard();updateBadge();
+}
 
 // ── 统计 ──
 async function renderStats(){
