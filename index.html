@@ -230,7 +230,7 @@ body{
 <div class="main"><div class="page active" id="page-review">
   <div class="header">
     <h1>📖 记忆助手</h1>
-    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v5</span></div>
+    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v6</span></div>
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
@@ -787,7 +787,7 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
     if(m)await dbPut(n);
   }
   renderCatSelector();await renderReviewDashboard();await updateBadge();
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js?v=5').catch(()=>{});}
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js?v=6').catch(()=>{});}
 })();
 </script>
 </body>

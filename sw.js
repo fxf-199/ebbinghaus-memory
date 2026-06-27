@@ -1,4 +1,4 @@
-const CACHE='ebbinghaus-v5',URLS=['./','./index.html','./manifest.json','./icon.svg'];
+const CACHE='ebbinghaus-v6',URLS=['./','./index.html','./manifest.json','./icon.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim();});
 // Network-First：网络优先，离线回退缓存
