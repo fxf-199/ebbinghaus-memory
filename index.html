@@ -352,13 +352,8 @@ function loadSession(){try{const v=localStorage.getItem(S_KEY);return v?JSON.par
 function clearSession(){localStorage.removeItem(S_KEY);}
 // 撤销快照
 let undoSrc=null;
-function calcNextReview(stage,rating){
-  if(rating==='forgot') return{stage:0,nextReview:addDays(now(),INTERVALS[0])};
-  if(rating==='vague'){const s=Math.max(stage-1,0);return{stage:s,nextReview:addDays(now(),INTERVALS[s])};}
-  const s=Math.min(stage+1,INTERVALS.length);
-  if(s===INTERVALS.length)return{stage:s,nextReview:null};
-  return{stage:s,nextReview:addDays(now(),INTERVALS[s])};
-}
+function getNextStage(stage){const s=Math.min(stage+1,INTERVALS.length);return s>=INTERVALS.length?null:s;}
+function getNextDays(stage){return stage>=INTERVALS.length-1?null:INTERVALS[Math.min(stage+1,INTERVALS.length-1)];}
 function now(){return Date.now();}
 function addDays(ts,d){return ts+d*86400000;}
 function stageLabel(s){
@@ -517,29 +512,57 @@ function showCard(){
 
 async function rateCard(rating){
   const note=reviewQueue[reviewIndex];
-  // 保存撤销快照
-  undoSrc={id:note.id,stage:note.stage,nextReview:note.nextReview,reviewCount:note.reviewCount,lastRating:note.lastRating,reviewLog:note.reviewLog?[...note.reviewLog]:[],index:reviewIndex};
-  // 模糊连续两次 → 自动晋升
-  let effectiveRating=rating;
-  if(rating==='vague'){
-    const last=note.reviewLog&&note.reviewLog.length?note.reviewLog[0]:null;
-    if(last&&last.rating==='vague'){effectiveRating='remembered';}
-  }
-  const result=calcNextReview(note.stage,effectiveRating);
-  note.stage=result.stage;note.nextReview=result.nextReview;
+  undoSrc={id:note.id,stage:note.stage,nextReview:note.nextReview,reviewCount:note.reviewCount,lastRating:note.lastRating,reviewLog:note.reviewLog?[...note.reviewLog]:[],index:reviewIndex,reinsert:false};
   note.reviewCount=(note.reviewCount||0)+1;note.lastRating=rating;
   if(!note.reviewLog)note.reviewLog=[];
-  note.reviewLog.unshift({date:todayStr(),rating:effectiveRating==='remembered'&&rating==='vague'?'auto-remembered':rating});
+  let reinsert=false,autoPromote=false,css='swipe-out';
+
+  if(rating==='forgot'){
+    // 忘了：重置阶段，当天重来，明天也复习
+    note.stage=0;note.nextReview=addDays(now(),1);
+    note.reviewLog.unshift({date:todayStr(),rating:'forgot'});
+    reinsert=true;css='swipe-left';
+    toast('标记：忘了 ← 再来一次 · 📅 明天继续');
+  }else if(rating==='vague'){
+    const last=note.reviewLog.length?note.reviewLog[0]:null;
+    if(last&&last.rating==='vague'){
+      // 连续两次模糊 → 自动晋升
+      autoPromote=true;
+      const ns=getNextStage(note.stage);
+      note.stage=ns!==null?ns:INTERVALS.length;
+      note.nextReview=ns!==null?addDays(now(),INTERVALS[Math.min(ns,INTERVALS.length-1)]):null;
+      note.reviewLog.unshift({date:todayStr(),rating:'auto-remembered'});
+      const nd=getNextDays(note.stage-1);
+      toast('标记：模糊→自动晋升'+(nd!==null?' 📅 约'+nd+'天后':' ✅ 已掌握'));
+    }else{
+      // 第一次模糊：当天重来，明天也复习
+      note.nextReview=addDays(now(),1);
+      note.reviewLog.unshift({date:todayStr(),rating:'vague'});
+      reinsert=true;
+      toast('标记：模糊 ← 再来一次 · 📅 明天继续');
+    }
+  }else{
+    // 记住了：当天不再出现，进入遗忘复习阶段
+    const ns=getNextStage(note.stage);
+    note.stage=ns!==null?ns:INTERVALS.length;
+    note.nextReview=ns!==null?addDays(now(),INTERVALS[Math.min(ns,INTERVALS.length-1)]):null;
+    note.reviewLog.unshift({date:todayStr(),rating:'remembered'});
+    const nd=getNextDays(note.stage-1);
+    toast('标记：记住了'+(nd!==null?' 📅 约'+nd+'天后':' ✅ 已掌握'));
+  }
   await dbPut(note);
 
   const card=document.getElementById('review-card');
-  card.classList.add(rating==='forgot'?'swipe-left':'swipe-out');
-  const txt=rating==='forgot'?'忘了':(effectiveRating==='remembered'&&rating==='vague'?'模糊→自动晋升':rating==='vague'?'模糊':'记住了');
-  const nextDays=result.nextReview?Math.round((result.nextReview-now())/86400000):null;
-  const nextMsg=result.nextReview===null?'✅ 已掌握':`📅 下次：约${nextDays}天后`;
-  toast('标记：'+txt+'  '+nextMsg);
+  card.classList.add(css);
   await new Promise(r=>setTimeout(r,280));
-  reviewIndex++;showCard();
+
+  if(reinsert){
+    undoSrc.reinsert=true;
+    reviewQueue.push(note);
+  }
+  reviewIndex++;
+  if(reviewIndex>=reviewQueue.length){finishReview();return;}
+  showCard();
   saveSession(reviewQueue.map(n=>n.id),reviewIndex,reviewCatFilter);
 }
 async function undoLastRating(){
@@ -547,6 +570,8 @@ async function undoLastRating(){
   const note=await dbGet(undoSrc.id);if(!note)return;
   note.stage=undoSrc.stage;note.nextReview=undoSrc.nextReview;note.reviewCount=undoSrc.reviewCount;note.lastRating=undoSrc.lastRating;note.reviewLog=undoSrc.reviewLog;
   await dbPut(note);
+  // 如果上次是重插（忘了/模糊），从队尾移除重插的副本
+  if(undoSrc.reinsert){const last=reviewQueue.length-1;if(last>=0&&reviewQueue[last].id===note.id)reviewQueue.splice(last,1);}
   reviewQueue.splice(reviewIndex,0,note);reviewIndex=undoSrc.index;
   undoSrc=null;toast('已撤销');
   showCard();
