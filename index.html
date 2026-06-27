@@ -558,7 +558,9 @@ async function rateCard(rating){
 
   if(reinsert){
     undoSrc.reinsert=true;
-    reviewQueue.push(note);
+    // 插入队列中间，及时复习
+    const pos=reviewIndex+Math.max(1,Math.floor((reviewQueue.length-reviewIndex)/2));
+    reviewQueue.splice(pos,0,note);
   }
   reviewIndex++;
   if(reviewIndex>=reviewQueue.length){finishReview();return;}
@@ -571,7 +573,7 @@ async function undoLastRating(){
   note.stage=undoSrc.stage;note.nextReview=undoSrc.nextReview;note.reviewCount=undoSrc.reviewCount;note.lastRating=undoSrc.lastRating;note.reviewLog=undoSrc.reviewLog;
   await dbPut(note);
   // 如果上次是重插（忘了/模糊），从队尾移除重插的副本
-  if(undoSrc.reinsert){const last=reviewQueue.length-1;if(last>=0&&reviewQueue[last].id===note.id)reviewQueue.splice(last,1);}
+  if(undoSrc.reinsert){for(let i=reviewQueue.length-1;i>reviewIndex;i--){if(reviewQueue[i].id===note.id){reviewQueue.splice(i,1);break;}}}
   reviewQueue.splice(reviewIndex,0,note);reviewIndex=undoSrc.index;
   undoSrc=null;toast('已撤销');
   showCard();
