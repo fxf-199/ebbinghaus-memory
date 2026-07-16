@@ -230,7 +230,7 @@ body{
 <div class="main"><div class="page active" id="page-review">
   <div class="header">
     <h1>📖 记忆助手</h1>
-    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v7</span></div>
+    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v8</span></div>
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
@@ -789,8 +789,28 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
     if(m)await dbPut(n);
   }
   renderCatSelector();await renderReviewDashboard();await updateBadge();
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js?v=7').catch(()=>{});}
+  initAutoUpdate();
 })();
+
+// ═══════════ 版本自检 + 强制刷新 ═══════════
+const APP_VERSION=8;
+async function initAutoUpdate(){
+  // 注册 SW（Network-First，保证后续请求拉最新）
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js?v=8').catch(()=>{});
+  }
+  // 拉取线上版本号（强制绕过缓存）
+  try{
+    const res=await fetch('version.json?t='+Date.now(),{cache:'no-store'});
+    const data=await res.json();
+    if(data.version && data.version!==APP_VERSION){
+      // 版本不一致 → 清掉所有缓存 + 注销旧 SW，再硬刷新
+      if('caches' in window){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)));}
+      if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.unregister()));}
+      location.reload(true);
+    }
+  }catch(e){/* 离线或拉取失败，忽略，下次再说 */}
+}
 </script>
 </body>
 </html>
