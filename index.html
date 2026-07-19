@@ -230,7 +230,7 @@ body{
 <div class="main"><div class="page active" id="page-review">
   <div class="header">
     <h1>📖 记忆助手</h1>
-    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v9</span></div>
+    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v10</span></div>
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
@@ -331,6 +331,7 @@ function saveCats(c){ localStorage.setItem(CAT_KEY,JSON.stringify(c)); }
 
 // ── Ebbinghaus ──
 const INTERVALS = [1,2,4,7,15,30,60];
+const WEAK_DISCOUNT = 0.6; // 薄弱项「记住了」后间隔打折系数（扇贝思路：难点缩短复习间隔）
 const WEAK_FILTER = '__weak__'; // 「🔥 待攻克」特殊筛选值
 function weakBadge(n){ return (n.weakStreak||0)>=2?'🔥 ':''; }
 const DAILY_LIMIT = 30; // 默认上限
@@ -523,44 +524,39 @@ async function rateCard(rating){
   note.reviewCount=(note.reviewCount||0)+1;note.lastRating=rating;
   if(!note.reviewLog)note.reviewLog=[];
   if(note.weakStreak===undefined)note.weakStreak=0;
-  let reinsert=false,autoPromote=false,css='swipe-out',insertGap=2;
+  let reinsert=false,css='swipe-out',insertGap=2;
 
   if(rating==='forgot'){
-    // 忘了：重置阶段，当天重来（马上再考），明天也复习 → 累加薄弱计数
+    // 忘了：阶段归零，当天马上再考（插队首），明天必复习 → 薄弱计数 +1（不归零）
     note.stage=0;note.nextReview=addDays(now(),1);
     note.weakStreak=(note.weakStreak||0)+1;
     note.reviewLog.unshift({date:todayStr(),rating:'forgot'});
-    reinsert=true;css='swipe-left';insertGap=1; // 完全不记得 → 紧挨着再考一次
+    reinsert=true;css='swipe-left';insertGap=1; // 紧挨着再考一次
     toast('标记：忘了 ← 马上再来 · 📅 明天继续');
   }else if(rating==='vague'){
-    const last=note.reviewLog.length?note.reviewLog[0]:null;
-    if(last&&last.rating==='vague'){
-      // 连续两次模糊 → 自动晋升（等同于记住了，清零薄弱）
-      autoPromote=true;
-      note.weakStreak=0;
-      const ns=getNextStage(note.stage);
-      note.stage=ns!==null?ns:INTERVALS.length;
-      note.nextReview=ns!==null?addDays(now(),INTERVALS[Math.min(ns,INTERVALS.length-1)]):null;
-      note.reviewLog.unshift({date:todayStr(),rating:'auto-remembered'});
-      const nd=getNextDays(note.stage-1);
-      toast('标记：模糊→自动晋升'+(nd!==null?' 📅 约'+nd+'天后':' ✅ 已掌握'));
+    // 模糊：纯「当天」逻辑。统计今天已点过的「模糊」次数（跨天不算）
+    const vagueToday=(note.reviewLog||[]).filter(r=>r.rating==='vague'&&r.date===todayStr()).length;
+    note.reviewLog.unshift({date:todayStr(),rating:'vague'});
+    note.nextReview=addDays(now(),1);        // 明天必复习（≠ 记住了，不进艾宾浩斯）
+    note.weakStreak=(note.weakStreak||0)+1;  // 薄弱累加，不归零
+    if(vagueToday>=1){
+      // 今天第 2 次模糊 → 今天到此，明天仍复习（不清零、不当成记住了）
+      toast('标记：模糊×2 ← 今天到此 · 📅 明天继续');
     }else{
-      // 第一次模糊：当天重来（插中间），明天也复习 → 累加薄弱计数
-      note.nextReview=addDays(now(),1);
-      note.weakStreak=(note.weakStreak||0)+1;
-      note.reviewLog.unshift({date:todayStr(),rating:'vague'});
-      reinsert=true;insertGap=Math.max(2,Math.floor((reviewQueue.length-reviewIndex)/2)); // 模糊→队列中间
+      // 今天第 1 次模糊 → 当天再来一次（插中间）
+      reinsert=true;insertGap=Math.max(2,Math.floor((reviewQueue.length-reviewIndex)/2));
       toast('标记：模糊 ← 再来一次 · 📅 明天继续');
     }
   }else{
-    // 记住了：当天不再出现，进入遗忘复习阶段 → 清零薄弱
-    note.weakStreak=0;
+    // 记住了：进入艾宾浩斯下一阶段。薄弱计数「退 2 级不归零」（SM-2 / 扇贝思路）
+    note.weakStreak=Math.max(0,(note.weakStreak||0)-2);
     const ns=getNextStage(note.stage);
     note.stage=ns!==null?ns:INTERVALS.length;
-    note.nextReview=ns!==null?addDays(now(),INTERVALS[Math.min(ns,INTERVALS.length-1)]):null;
+    let days=ns!==null?INTERVALS[Math.min(ns,INTERVALS.length-1)]:null;
+    if(days!==null&&note.weakStreak>=2){days=Math.max(1,Math.round(days*WEAK_DISCOUNT));} // 薄弱项间隔打折
+    note.nextReview=days!==null?addDays(now(),days):null;
     note.reviewLog.unshift({date:todayStr(),rating:'remembered'});
-    const nd=getNextDays(note.stage-1);
-    toast('标记：记住了'+(nd!==null?' 📅 约'+nd+'天后':' ✅ 已掌握'));
+    toast('标记：记住了'+(days!==null?(' 📅 约'+days+'天后'+(note.weakStreak>=2?' ⚡间隔打折':'')):' ✅ 已掌握'));
   }
   await dbPut(note);
 
@@ -807,11 +803,13 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
 })();
 
 // ═══════════ 版本自检 + 强制刷新 ═══════════
-const APP_VERSION=9;
+const APP_VERSION=10;
 async function initAutoUpdate(){
+  // 若本次会话已因更新刷新过一次，则跳过检查，避免「检测→刷新→仍不一致→再刷新」死循环
+  if(sessionStorage.getItem('__ebForceUpdate')){sessionStorage.removeItem('__ebForceUpdate');return;}
   // 注册 SW（Network-First，保证后续请求拉最新）
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js?v=9').catch(()=>{});
+    navigator.serviceWorker.register('sw.js?v=10').catch(()=>{});
   }
   // 拉取线上版本号（强制绕过缓存）
   try{
