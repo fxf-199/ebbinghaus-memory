@@ -804,22 +804,25 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
 
 // ═══════════ 版本自检 + 强制刷新 ═══════════
 const APP_VERSION=10;
+const MAX_FORCE_RELOAD=2; // 同会话最多强制刷新次数：超出即放弃，杜绝「检测→刷新→仍旧版」死循环
 async function initAutoUpdate(){
-  // 若本次会话已因更新刷新过一次，则跳过检查，避免「检测→刷新→仍不一致→再刷新」死循环
-  if(sessionStorage.getItem('__ebForceUpdate')){sessionStorage.removeItem('__ebForceUpdate');return;}
-  // 注册 SW（Network-First，保证后续请求拉最新）
+  const tried=parseInt(sessionStorage.getItem('__ebUpdateTries')||'0',10);
+  if(tried>=MAX_FORCE_RELOAD)return; // 兜底：即使 SW 仍服务旧版，也最多刷 2 次，保证可用
+  // 注册 SW（导航请求永远拉最新 index.html，见 sw.js）
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js?v=10').catch(()=>{});
+    navigator.serviceWorker.register('sw.js?v=11').catch(()=>{});
   }
   // 拉取线上版本号（强制绕过缓存）
   try{
     const res=await fetch('version.json?t='+Date.now(),{cache:'no-store'});
     const data=await res.json();
     if(data.version && data.version!==APP_VERSION){
-      // 版本不一致 → 清掉所有缓存 + 注销旧 SW，再硬刷新
-      if('caches' in window){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)));}
-      if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.unregister()));}
-      location.reload(true);
+      sessionStorage.setItem('__ebUpdateTries',String(tried+1));
+      try{const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)));}catch(e){}
+      try{const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.unregister()));}catch(e){}
+      // 用缓存破击 URL 导航，确保真正拉到新版 index.html（绕过 HTTP/SW 缓存）
+      const sep=location.href.includes('?')?'&':'?';
+      location.replace(location.pathname+sep+'__v='+Date.now());
     }
   }catch(e){/* 离线或拉取失败，忽略，下次再说 */}
 }
