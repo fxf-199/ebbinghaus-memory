@@ -230,7 +230,7 @@ body{
 <div class="main"><div class="page active" id="page-review">
   <div class="header">
     <h1>📖 记忆助手</h1>
-    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v8</span></div>
+    <div class="sub" id="review-sub">艾宾浩斯间隔复习 <span style="color:var(--muted);font-size:10px">v9</span></div>
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
@@ -331,6 +331,8 @@ function saveCats(c){ localStorage.setItem(CAT_KEY,JSON.stringify(c)); }
 
 // ── Ebbinghaus ──
 const INTERVALS = [1,2,4,7,15,30,60];
+const WEAK_FILTER = '__weak__'; // 「🔥 待攻克」特殊筛选值
+function weakBadge(n){ return (n.weakStreak||0)>=2?'🔥 ':''; }
 const DAILY_LIMIT = 30; // 默认上限
 // 每日新学配额（localStorage，按分类独立）
 const Q_KEY = 'ebbinghaus-quota';
@@ -437,8 +439,10 @@ async function renderReviewDashboard(){
 
   const cats=getCats(),catDue={};
   cats.forEach(c=>{catDue[c]=allDue.filter(n=>n.category===c).length;});
+  const weakDue=allDue.filter(n=>(n.weakStreak||0)>=2).length;
+  const wSel=reviewCatFilter===WEAK_FILTER?' selected':'';
   const fHtml=cats.map(c=>{const s=reviewCatFilter===c?' selected':'';return`<span class="filter-chip${s}" onclick="setReviewCat('${eAttr(c)}')">${eHtml(c)} (${catDue[c]||0})</span>`;}).join('');
-  const aSel=reviewCatFilter===null?' selected':'',dueF=reviewCatFilter?allDue.filter(n=>n.category===reviewCatFilter):allDue;
+  const aSel=reviewCatFilter===null?' selected':'',dueF=reviewCatFilter===WEAK_FILTER?allDue.filter(n=>(n.weakStreak||0)>=2):(reviewCatFilter?allDue.filter(n=>n.category===reviewCatFilter):allDue);
   const revCards=dueF.filter(n=>!(n.stage===0&&(n.reviewCount||0)===0));
   const newCards=dueF.filter(n=>n.stage===0&&(n.reviewCount||0)===0);
   let newAvail=0;
@@ -447,13 +451,13 @@ async function renderReviewDashboard(){
   const totalReady=revCards.length+newAvail;
 
   if(totalReady===0){
-    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p><p style="font-size:12px;color:var(--muted)">复习卡 ${revCards.length} · 新卡配额已用完 (${newCards.length} 等待明天)</p>${canResume?`<button class="btn btn-outline btn-sm" style="margin-top:12px;width:auto" onclick="startReview(${JSON.stringify(session.ids)},${session.idx})">⏯ 继续上次复习 (${session.ids.length} 条)</button>`:''}</div>`;
+    dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}<span class="filter-chip${wSel}" onclick="setReviewCat('${WEAK_FILTER}')" style="background:${reviewCatFilter===WEAK_FILTER?'#FEF2F2':''};border-color:${reviewCatFilter===WEAK_FILTER?'#EF4444':''};color:${reviewCatFilter===WEAK_FILTER?'#EF4444':''}">🔥 待攻克 (${weakDue})</span></div><div class="review-empty"><div class="emoji">🎉</div><p>${reviewCatFilter?'该分类暂无可复习':'全部复习完毕！'}</p><p style="font-size:12px;color:var(--muted)">复习卡 ${revCards.length} · 新卡配额已用完 (${newCards.length} 等待明天)</p>${canResume?`<button class="btn btn-outline btn-sm" style="margin-top:12px;width:auto" onclick="startReview(${JSON.stringify(session.ids)},${session.idx})">⏯ 继续上次复习 (${session.ids.length} 条)</button>`:''}</div>`;
     return;
   }
-  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}</div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${totalReady}</div><div style="font-size:13px;color:var(--sub);margin-bottom:6px">${reviewCatFilter?'「'+reviewCatFilter+'」':''}复习 ${revCards.length} + 新学 ${newAvail}/${reviewCatFilter?getCatLimit(reviewCatFilter):'—'}</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button>${canResume?`<button class="btn btn-outline btn-sm" style="margin-top:8px;width:auto" onclick="startReview(${JSON.stringify(session.ids)},${session.idx})">⏯ 继续上次复习 (${session.ids.length} 条)</button>`:''}</div>`;
+  dash.innerHTML=`<div class="filter-row"><span class="filter-chip${aSel}" onclick="setReviewCat(null)">全部 (${allDue.length})</span>${fHtml}<span class="filter-chip${wSel}" onclick="setReviewCat('${WEAK_FILTER}')" style="background:${reviewCatFilter===WEAK_FILTER?'#FEF2F2':''};border-color:${reviewCatFilter===WEAK_FILTER?'#EF4444':''};color:${reviewCatFilter===WEAK_FILTER?'#EF4444':''}">🔥 待攻克 (${weakDue})</span></div><div class="card" style="text-align:center"><div style="font-size:48px;margin-bottom:8px">🧠</div><div style="font-size:36px;font-weight:800;color:var(--pri)">${totalReady}</div><div style="font-size:13px;color:var(--sub);margin-bottom:6px">${reviewCatFilter==WEAK_FILTER?'🔥 待攻克':(reviewCatFilter?'「'+reviewCatFilter+'」':'')}复习 ${revCards.length} + 新学 ${newAvail}/${reviewCatFilter&&reviewCatFilter!==WEAK_FILTER?getCatLimit(reviewCatFilter):'—'}</div><button class="btn btn-primary" onclick="startReview()">▶ 开始复习</button>${canResume?`<button class="btn btn-outline btn-sm" style="margin-top:8px;width:auto" onclick="startReview(${JSON.stringify(session.ids)},${session.idx})">⏯ 继续上次复习 (${session.ids.length} 条)</button>`:''}</div>`;
 }
-function setReviewCat(c){reviewCatFilter=c;document.getElementById('review-sub').textContent=c?`正在学习：${c}`:'艾宾浩斯间隔复习';renderReviewDashboard();}
-async function getDueNotes(cat){const all=await dbGetAll();const n=now();let d=all.filter(x=>x.nextReview!==null&&x.nextReview<=n);if(cat)d=d.filter(x=>x.category===cat);return d;}
+function setReviewCat(c){reviewCatFilter=c;document.getElementById('review-sub').textContent=c===WEAK_FILTER?'正在攻克：🔥 待攻克':(c?`正在学习：${c}`:'艾宾浩斯间隔复习');renderReviewDashboard();}
+async function getDueNotes(cat){const all=await dbGetAll();const n=now();let d=all.filter(x=>x.nextReview!==null&&x.nextReview<=n);if(cat===WEAK_FILTER)d=d.filter(x=>(x.weakStreak||0)>=2);else if(cat)d=d.filter(x=>x.category===cat);return d;}
 
 async function startReview(restoreIds,restoreIdx){
   let allDue;
@@ -477,7 +481,10 @@ async function startReview(restoreIds,restoreIdx){
         if(pick.length)addDailyNewUsed(c,pick.length);
       });
     }
-    reviewQueue=shuffle(reviewCards).concat(shuffle(selectedNew));
+    // 薄弱优先：weakStreak>=2 的排到队首，其余乱序
+    const weakCards=reviewCards.filter(n=>(n.weakStreak||0)>=2);
+    const normalCards=reviewCards.filter(n=>(n.weakStreak||0)<2);
+    reviewQueue=shuffle(weakCards).concat(shuffle(normalCards)).concat(shuffle(selectedNew));
     reviewIndex=0;
   }
   if(!reviewQueue.length){renderReviewDashboard();return;}
@@ -495,10 +502,10 @@ function showCard(){
   const container=document.getElementById('review-active');
 
   if(hasFB){
-    container.innerHTML=`<div class="review-card-wrapper"><div class="review-card" id="review-card"><button class="review-del-btn" onclick="delReviewNote()" title="删除">🗑</button><button class="review-del-btn" style="right:46px;border-color:#E2E8F0;background:#F8FAFC;color:#94A3B8" onclick="editNote(${note.id})" title="编辑">✏️</button><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center"><span class="review-stage">${note.stage===0&&note.reviewCount===0?'🆕 新学':stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>${note.category&&note.category!==DEFAULT_CAT?`<span class="review-cat">📂 ${eHtml(note.category)}</span>`:''}</div><div class="review-front" style="min-height:50px">${eHtml(note.front||'（无标题）')}</div><div class="review-hint">先回忆一下，然后点击查看</div><button class="btn btn-outline" id="reveal-btn" style="width:auto">👁 显示答案</button><div id="reveal-area" style="display:none"><div class="review-back">${eHtml(note.back||note.content)}</div></div><div class="rating-row" id="rating-row" style="display:none"><button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button><button class="rating-btn vague" onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button><button class="rating-btn gotit" onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button></div></div></div><div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">${reviewIndex+1}/${reviewQueue.length}</div>`;
+    container.innerHTML=`<div class="review-card-wrapper"><div class="review-card" id="review-card"><button class="review-del-btn" onclick="delReviewNote()" title="删除">🗑</button><button class="review-del-btn" style="right:46px;border-color:#E2E8F0;background:#F8FAFC;color:#94A3B8" onclick="editNote(${note.id})" title="编辑">✏️</button><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center"><span class="review-stage">${weakBadge(note)}${note.stage===0&&note.reviewCount===0?'🆕 新学':stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>${note.category&&note.category!==DEFAULT_CAT?`<span class="review-cat">📂 ${eHtml(note.category)}</span>`:''}</div><div class="review-front" style="min-height:50px">${eHtml(note.front||'（无标题）')}</div><div class="review-hint">先回忆一下，然后点击查看</div><button class="btn btn-outline" id="reveal-btn" style="width:auto">👁 显示答案</button><div id="reveal-area" style="display:none"><div class="review-back">${eHtml(note.back||note.content)}</div></div><div class="rating-row" id="rating-row" style="display:none"><button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button><button class="rating-btn vague" onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button><button class="rating-btn gotit" onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button></div></div></div><div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">${reviewIndex+1}/${reviewQueue.length}</div>`;
   }else{
     const len=note.content.length;
-    container.innerHTML=`<div class="review-card-wrapper"><div class="review-card" id="review-card"><button class="review-del-btn" onclick="delReviewNote()" title="删除">🗑</button><button class="review-del-btn" style="right:46px;border-color:#E2E8F0;background:#F8FAFC;color:#94A3B8" onclick="editNote(${note.id})" title="编辑">✏️</button><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center"><span class="review-stage">${note.stage===0&&note.reviewCount===0?'🆕 新学':stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>${note.category&&note.category!==DEFAULT_CAT?`<span class="review-cat">📂 ${eHtml(note.category)}</span>`:''}</div><div class="review-hint">先回忆一下，然后点击查看</div><button class="btn btn-outline" id="reveal-btn" style="width:auto">👁 显示内容</button><div class="review-content${contentClass(note.content)}" id="reveal-content" style="display:none">${eHtml(note.content)}</div><div class="rating-row" id="rating-row" style="display:none"><button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button><button class="rating-btn vague" onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button><button class="rating-btn gotit" onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button></div></div></div><div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">${reviewIndex+1}/${reviewQueue.length}</div>`;
+    container.innerHTML=`<div class="review-card-wrapper"><div class="review-card" id="review-card"><button class="review-del-btn" onclick="delReviewNote()" title="删除">🗑</button><button class="review-del-btn" style="right:46px;border-color:#E2E8F0;background:#F8FAFC;color:#94A3B8" onclick="editNote(${note.id})" title="编辑">✏️</button><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center"><span class="review-stage">${weakBadge(note)}${note.stage===0&&note.reviewCount===0?'🆕 新学':stageLabel(note.stage)} · 第${note.reviewCount+1}次</span>${note.category&&note.category!==DEFAULT_CAT?`<span class="review-cat">📂 ${eHtml(note.category)}</span>`:''}</div><div class="review-hint">先回忆一下，然后点击查看</div><button class="btn btn-outline" id="reveal-btn" style="width:auto">👁 显示内容</button><div class="review-content${contentClass(note.content)}" id="reveal-content" style="display:none">${eHtml(note.content)}</div><div class="rating-row" id="rating-row" style="display:none"><button class="rating-btn forgot" onclick="rateCard('forgot')"><span class="r-emoji">😰</span>忘了</button><button class="rating-btn vague" onclick="rateCard('vague')"><span class="r-emoji">🤨</span>模糊</button><button class="rating-btn gotit" onclick="rateCard('remembered')"><span class="r-emoji">😎</span>记住了</button></div></div></div><div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">${reviewIndex+1}/${reviewQueue.length}</div>`;
   }
 
   document.getElementById('reveal-btn').addEventListener('click',()=>{
@@ -512,22 +519,25 @@ function showCard(){
 
 async function rateCard(rating){
   const note=reviewQueue[reviewIndex];
-  undoSrc={id:note.id,stage:note.stage,nextReview:note.nextReview,reviewCount:note.reviewCount,lastRating:note.lastRating,reviewLog:note.reviewLog?[...note.reviewLog]:[],index:reviewIndex,reinsert:false};
+  undoSrc={id:note.id,stage:note.stage,nextReview:note.nextReview,reviewCount:note.reviewCount,lastRating:note.lastRating,reviewLog:note.reviewLog?[...note.reviewLog]:[],weakStreak:note.weakStreak||0,index:reviewIndex,reinsert:false};
   note.reviewCount=(note.reviewCount||0)+1;note.lastRating=rating;
   if(!note.reviewLog)note.reviewLog=[];
-  let reinsert=false,autoPromote=false,css='swipe-out';
+  if(note.weakStreak===undefined)note.weakStreak=0;
+  let reinsert=false,autoPromote=false,css='swipe-out',insertGap=2;
 
   if(rating==='forgot'){
-    // 忘了：重置阶段，当天重来，明天也复习
+    // 忘了：重置阶段，当天重来（马上再考），明天也复习 → 累加薄弱计数
     note.stage=0;note.nextReview=addDays(now(),1);
+    note.weakStreak=(note.weakStreak||0)+1;
     note.reviewLog.unshift({date:todayStr(),rating:'forgot'});
-    reinsert=true;css='swipe-left';
-    toast('标记：忘了 ← 再来一次 · 📅 明天继续');
+    reinsert=true;css='swipe-left';insertGap=1; // 完全不记得 → 紧挨着再考一次
+    toast('标记：忘了 ← 马上再来 · 📅 明天继续');
   }else if(rating==='vague'){
     const last=note.reviewLog.length?note.reviewLog[0]:null;
     if(last&&last.rating==='vague'){
-      // 连续两次模糊 → 自动晋升
+      // 连续两次模糊 → 自动晋升（等同于记住了，清零薄弱）
       autoPromote=true;
+      note.weakStreak=0;
       const ns=getNextStage(note.stage);
       note.stage=ns!==null?ns:INTERVALS.length;
       note.nextReview=ns!==null?addDays(now(),INTERVALS[Math.min(ns,INTERVALS.length-1)]):null;
@@ -535,14 +545,16 @@ async function rateCard(rating){
       const nd=getNextDays(note.stage-1);
       toast('标记：模糊→自动晋升'+(nd!==null?' 📅 约'+nd+'天后':' ✅ 已掌握'));
     }else{
-      // 第一次模糊：当天重来，明天也复习
+      // 第一次模糊：当天重来（插中间），明天也复习 → 累加薄弱计数
       note.nextReview=addDays(now(),1);
+      note.weakStreak=(note.weakStreak||0)+1;
       note.reviewLog.unshift({date:todayStr(),rating:'vague'});
-      reinsert=true;
+      reinsert=true;insertGap=Math.max(2,Math.floor((reviewQueue.length-reviewIndex)/2)); // 模糊→队列中间
       toast('标记：模糊 ← 再来一次 · 📅 明天继续');
     }
   }else{
-    // 记住了：当天不再出现，进入遗忘复习阶段
+    // 记住了：当天不再出现，进入遗忘复习阶段 → 清零薄弱
+    note.weakStreak=0;
     const ns=getNextStage(note.stage);
     note.stage=ns!==null?ns:INTERVALS.length;
     note.nextReview=ns!==null?addDays(now(),INTERVALS[Math.min(ns,INTERVALS.length-1)]):null;
@@ -558,8 +570,8 @@ async function rateCard(rating){
 
   if(reinsert){
     undoSrc.reinsert=true;
-    // 插入队列中间，及时复习
-    const pos=reviewIndex+Math.max(1,Math.floor((reviewQueue.length-reviewIndex)/2));
+    // 忘了插到队首附近（马上再考），模糊插到队列中间
+    const pos=reviewIndex+insertGap;
     reviewQueue.splice(pos,0,note);
   }
   reviewIndex++;
@@ -570,7 +582,7 @@ async function rateCard(rating){
 async function undoLastRating(){
   if(!undoSrc)return;
   const note=await dbGet(undoSrc.id);if(!note)return;
-  note.stage=undoSrc.stage;note.nextReview=undoSrc.nextReview;note.reviewCount=undoSrc.reviewCount;note.lastRating=undoSrc.lastRating;note.reviewLog=undoSrc.reviewLog;
+  note.stage=undoSrc.stage;note.nextReview=undoSrc.nextReview;note.reviewCount=undoSrc.reviewCount;note.lastRating=undoSrc.lastRating;note.reviewLog=undoSrc.reviewLog;note.weakStreak=undoSrc.weakStreak;
   await dbPut(note);
   // 如果上次是重插（忘了/模糊），从队尾移除重插的副本
   if(undoSrc.reinsert){for(let i=reviewQueue.length-1;i>reviewIndex;i--){if(reviewQueue[i].id===note.id){reviewQueue.splice(i,1);break;}}}
@@ -639,15 +651,17 @@ function mergeBack(oldB,newB){
 }
 function longestCommon(a,b){let best='';for(let i=0;i<a.length;i++)for(let j=i+1;j<=a.length;j++){const s=a.slice(i,j);if(b.includes(s)&&s.length>best.length)best=s;}return best;}
 function noteKey(n){return(n.category||'')+'::'+(n.front||'')+'::'+(n.content||'').slice(0,30);}
-let noteFilterCat=null;let noteFilterMastered=false;
+let noteFilterCat=null;let noteFilterMastered=false;let noteFilterWeak=false;
 async function renderNoteList(){
   const all=await dbGetAll(),cats=getCats(),cc={};cats.forEach(c=>{cc[c]=all.filter(n=>n.category===c).length;});
   const masteredCount=all.filter(n=>n.stage>=INTERVALS.length).length;
-  const aSel=noteFilterCat===null&&!noteFilterMastered?' selected':'',fHtml=cats.map(c=>{const s=noteFilterCat===c&&!noteFilterMastered?' selected':'';return`<span class="filter-chip${s}" onclick="setNoteF('${eAttr(c)}',false)">${eHtml(c)} (${cc[c]||0})</span>`;}).join('');
-  const mSel=noteFilterMastered?' selected':'';
-  document.getElementById('note-filter').innerHTML=`<span class="filter-chip${aSel}" onclick="setNoteF(null,false)">全部 (${all.length})</span>${fHtml}<span class="filter-chip${mSel}" onclick="setNoteF(null,true)" style="background:${noteFilterMastered?'#ECFDF5':''};border-color:${noteFilterMastered?'#10B981':''};color:${noteFilterMastered?'#10B981':''}">✅ 已掌握 (${masteredCount})</span>`;
+  const weakCount=all.filter(n=>(n.weakStreak||0)>=2).length;
+  const aSel=noteFilterCat===null&&!noteFilterMastered&&!noteFilterWeak?' selected':'',fHtml=cats.map(c=>{const s=noteFilterCat===c&&!noteFilterMastered&&!noteFilterWeak?' selected':'';return`<span class="filter-chip${s}" onclick="setNoteF('${eAttr(c)}',false,false)">${eHtml(c)} (${cc[c]||0})</span>`;}).join('');
+  const mSel=noteFilterMastered?' selected':'',wSel=noteFilterWeak?' selected':'';
+  document.getElementById('note-filter').innerHTML=`<span class="filter-chip${aSel}" onclick="setNoteF(null,false,false)">全部 (${all.length})</span>${fHtml}<span class="filter-chip${mSel}" onclick="setNoteF(null,true,false)" style="background:${noteFilterMastered?'#ECFDF5':''};border-color:${noteFilterMastered?'#10B981':''};color:${noteFilterMastered?'#10B981':''}">✅ 已掌握 (${masteredCount})</span><span class="filter-chip${wSel}" onclick="setNoteF(null,false,true)" style="background:${noteFilterWeak?'#FEF2F2':''};border-color:${noteFilterWeak?'#EF4444':''};color:${noteFilterWeak?'#EF4444':''}">🔥 待攻克 (${weakCount})</span>`;
   let filtered=all;
-  if(noteFilterMastered){filtered=all.filter(n=>n.stage>=INTERVALS.length);}
+  if(noteFilterWeak){filtered=all.filter(n=>(n.weakStreak||0)>=2);}
+  else if(noteFilterMastered){filtered=all.filter(n=>n.stage>=INTERVALS.length);}
   else if(noteFilterCat){filtered=all.filter(n=>n.category===noteFilterCat);}
   // 搜索过滤
   const q=(document.getElementById('search-input')?.value||'').trim().toLowerCase();
@@ -656,7 +670,7 @@ async function renderNoteList(){
   if(!filtered.length){list.innerHTML='<p style="color:var(--muted);font-size:14px;text-align:center;padding:20px">暂无笔记</p>';return;}
   list.innerHTML=filtered.sort((a,b)=>b.createdAt-a.createdAt).slice(0,100).map(n=>`<div class="note-list-item"><span class="n-cat">${eHtml(n.category||DEFAULT_CAT)}</span><span class="n-content">${eHtml(n.front?n.front+(' · '+n.back).slice(0,20):(n.content||'').slice(0,40))}</span><span class="n-meta">${stageLabel(n.stage)}</span><span class="n-acts"><button title="编辑" onclick="editNote(${n.id})">✏️</button><button title="删除" onclick="delNote(${n.id})">🗑</button></span></div>`).join('');
 }
-function setNoteF(c,m){noteFilterCat=c;noteFilterMastered=m;renderNoteList();}
+function setNoteF(c,m,w){noteFilterCat=c;noteFilterMastered=m;noteFilterWeak=!!w;renderNoteList();}
 
 async function editNote(id){
   const note=await dbGet(id);if(!note)return;
@@ -793,11 +807,11 @@ async function updateBadge(){const d=await getDueNotes(null);document.getElement
 })();
 
 // ═══════════ 版本自检 + 强制刷新 ═══════════
-const APP_VERSION=8;
+const APP_VERSION=9;
 async function initAutoUpdate(){
   // 注册 SW（Network-First，保证后续请求拉最新）
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js?v=8').catch(()=>{});
+    navigator.serviceWorker.register('sw.js?v=9').catch(()=>{});
   }
   // 拉取线上版本号（强制绕过缓存）
   try{
