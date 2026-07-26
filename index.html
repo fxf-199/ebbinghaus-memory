@@ -234,7 +234,7 @@ body{
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
-  <div id="review-tip" style="display:none;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">💡 空格显示 · 1忘了 2模糊 3认识 · 📱滑动评分</div>
+  <div id="review-tip" style="display:none;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">💡 空格显示 · 1忘了 2模糊 3认识</div>
   <div id="review-done" style="display:none"></div>
 </div></div>
 
@@ -528,7 +528,6 @@ async function startReview(restoreIds,restoreIdx){
   saveSession(reviewQueue.map(n=>n.id),reviewIndex,reviewCatFilter);
 }
 
-const THINK_SECONDS=3;
 function showCard(){
   const _tip=document.getElementById('review-tip');if(_tip)_tip.style.display='block';
   if(reviewIndex>=reviewQueue.length){finishReview();return;}
@@ -544,23 +543,11 @@ function showCard(){
   }
 
   document.getElementById('reveal-btn').addEventListener('click',()=>{
-    const btn=document.getElementById('reveal-btn');
-    btn.disabled=true;
-    let s=THINK_SECONDS;
-    btn.textContent='🧠 再想想… '+s;
-    const _t=setInterval(()=>{
-      s--;
-      if(s<=0){
-        clearInterval(_t);
-        btn.style.display='none';
-        document.querySelector('.review-hint').style.display='none';
-        const revArea=document.getElementById('reveal-area')||document.getElementById('reveal-content');
-        if(revArea)revArea.style.display='block';
-        document.getElementById('rating-row').style.display='flex';
-      }else{
-        btn.textContent='🧠 再想想… '+s;
-      }
-    },1000);
+    document.getElementById('reveal-btn').style.display='none';
+    const hint=document.querySelector('.review-hint');if(hint)hint.style.display='none';
+    const revArea=document.getElementById('reveal-area')||document.getElementById('reveal-content');
+    if(revArea)revArea.style.display='block';
+    document.getElementById('rating-row').style.display='flex';
   });
 }
 
@@ -776,7 +763,7 @@ document.getElementById('export-weak-btn').addEventListener('click',async()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ebbinghaus-weak-'+todayStr()+'.json';a.click();
   toast('✅ 已导出 '+weak.length+' 张待攻克卡片');
 });
-// ── v11.2 键盘快捷键 + 手机滑动评分 ──
+// ── v11.2 键盘快捷键（手机滑动评分已移除）──
 document.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase();
   if(tag==='input'||tag==='textarea'||e.target.isContentEditable)return;
@@ -792,19 +779,6 @@ document.addEventListener('keydown',e=>{
     if(ratingRow&&ratingRow.style.display!=='none'){e.preventDefault();rateCard('remembered');}
   }
 });
-let _tx=0,_ty=0;
-document.addEventListener('touchstart',e=>{if(e.changedTouches&&e.changedTouches[0]){_tx=e.changedTouches[0].clientX;_ty=e.changedTouches[0].clientY;}},{passive:true});
-document.addEventListener('touchend',e=>{
-  if(!e.changedTouches||!e.changedTouches[0])return;
-  const dx=e.changedTouches[0].clientX-_tx,dy=e.changedTouches[0].clientY-_ty;
-  const ratingRow=document.getElementById('rating-row');
-  if(!ratingRow||ratingRow.style.display==='none')return;
-  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){
-    if(dx<0)rateCard('forgot');else rateCard('remembered');
-  }else if(dy<-50){
-    rateCard('vague');
-  }
-},{passive:true});
 
 // ── 导入 JSON ──
 document.getElementById('import-json-btn').addEventListener('click',()=>document.getElementById('import-file').click());
