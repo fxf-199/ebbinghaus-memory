@@ -234,7 +234,6 @@ body{
   </div>
   <div id="review-dashboard"></div>
   <div id="review-active" style="display:none"></div>
-  <div id="review-tip" style="display:none;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">💡 空格显示 · 1忘了 2模糊 3认识</div>
   <div id="review-done" style="display:none"></div>
 </div></div>
 
@@ -529,7 +528,6 @@ async function startReview(restoreIds,restoreIdx){
 }
 
 function showCard(){
-  const _tip=document.getElementById('review-tip');if(_tip)_tip.style.display='block';
   if(reviewIndex>=reviewQueue.length){finishReview();return;}
   const note=reviewQueue[reviewIndex];
   const hasFB=!!note.front||!!note.back;
@@ -650,7 +648,7 @@ async function delReviewNote(){
   if(reviewIndex>=reviewQueue.length){finishReview();return;}
   showCard();
 }
-function finishReview(){document.getElementById('review-active').style.display='none';const _tip=document.getElementById('review-tip');if(_tip)_tip.style.display='none';const d=document.getElementById('review-dashboard');d.style.display='block';d.innerHTML=`<div class="review-summary"><div class="emoji">✅</div><div class="title">本轮复习完成</div><div class="detail">共复习 ${reviewQueue.length} 条</div></div>`;reviewQueue=[];reviewIndex=-1;clearSession();setTimeout(renderReviewDashboard,100);}
+function finishReview(){document.getElementById('review-active').style.display='none';const d=document.getElementById('review-dashboard');d.style.display='block';d.innerHTML=`<div class="review-summary"><div class="emoji">✅</div><div class="title">本轮复习完成</div><div class="detail">共复习 ${reviewQueue.length} 条</div></div>`;reviewQueue=[];reviewIndex=-1;clearSession();setTimeout(renderReviewDashboard,100);}
 
 // ── 导入 ──
 document.getElementById('import-btn').addEventListener('click',doImport);
@@ -762,22 +760,6 @@ document.getElementById('export-weak-btn').addEventListener('click',async()=>{
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ebbinghaus-weak-'+todayStr()+'.json';a.click();
   toast('✅ 已导出 '+weak.length+' 张待攻克卡片');
-});
-// ── v11.2 键盘快捷键（手机滑动评分已移除）──
-document.addEventListener('keydown',e=>{
-  const tag=(e.target.tagName||'').toLowerCase();
-  if(tag==='input'||tag==='textarea'||e.target.isContentEditable)return;
-  const revealBtn=document.getElementById('reveal-btn');
-  const ratingRow=document.getElementById('rating-row');
-  if(e.code==='Space'||e.key==='Enter'){
-    if(revealBtn&&revealBtn.style.display!=='none'&&!revealBtn.disabled){e.preventDefault();revealBtn.click();}
-  }else if(e.key==='1'){
-    if(ratingRow&&ratingRow.style.display!=='none'){e.preventDefault();rateCard('forgot');}
-  }else if(e.key==='2'){
-    if(ratingRow&&ratingRow.style.display!=='none'){e.preventDefault();rateCard('vague');}
-  }else if(e.key==='3'){
-    if(ratingRow&&ratingRow.style.display!=='none'){e.preventDefault();rateCard('remembered');}
-  }
 });
 
 // ── 导入 JSON ──
